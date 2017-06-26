@@ -2057,7 +2057,7 @@ function bin:addBlock(d,n,e)
 			temp.data=temp.data..'_EOF'
 			temp:flipbits()
 		else
-			temp=bits.new(d):tobytes()
+			temp=bin.new(bits.numToBytes(d,n))
 			if not n then
 				temp.data=temp.data..'_EOF'
 				temp:flipbits()
