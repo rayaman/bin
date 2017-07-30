@@ -1,5 +1,5 @@
 -- Part of the massive rewrite I am making for the bin library. this library will sport hex, base32, base64, and base91 when it is done
--- For now feel free to take a look at this code
+-- For now feel free to take a look at this code and use it for your own needs
 bit=require("bit")
 function table.flip(t)
 	local tt={}
