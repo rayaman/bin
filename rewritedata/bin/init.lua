@@ -16,116 +16,25 @@ bits.__tostring=function(self) return self.data end
 bits.__len=function(self) return (#self.data)/8 end
 bin.lastBlockSize=0
 bin.streams={} -- FIX FOR THREADING!!!
-bin.base64chars = {[0]='A',[1]='B',[2]='C',[3]='D',[4]='E',[5]='F',[6]='G',[7]='H',[8]='I',[9]='J',[10]='K',[11]='L',[12]='M',[13]='N',[14]='O',[15]='P',[16]='Q',[17]='R',[18]='S',[19]='T',[20]='U',[21]='V',[22]='W',[23]='X',[24]='Y',[25]='Z',[26]='a',[27]='b',[28]='c',[29]='d',[30]='e',[31]='f',[32]='g',[33]='h',[34]='i',[35]='j',[36]='k',[37]='l',[38]='m',[39]='n',[40]='o',[41]='p',[42]='q',[43]='r',[44]='s',[45]='t',[46]='u',[47]='v',[48]='w',[49]='x',[50]='y',[51]='z',[52]='0',[53]='1',[54]='2',[55]='3',[56]='4',[57]='5',[58]='6',[59]='7',[60]='8',[61]='9',[62]='-',[63]='_'}
 -- Helpers
-function bin.fileExist(path)
-	g=io.open(path or '','r')
-	if path =='' then
-		p='empty path'
-		return nil
-	end
-	if g~=nil and true or false then
-		p=(g~=nil and true or false)
-	end
-	if g~=nil then
-		io.close(g)
-	else
-		return false
-	end
-	return p
+if jit then
+	bit=require("bit")
+elseif bit32 then
+	bit=bit32
+else
+	bit=require("bin.no_jit_bit")
 end
-function bin.toB64(data)
-	local bytes = {}
-	local result = ""
-	for spos=0,string.len(data)-1,3 do
-		for byte=1,3 do bytes[byte] = string.byte(string.sub(data,(spos+byte))) or 0 end
-		result = string.format('%s%s%s%s%s',result,bin.base64chars[bits.rsh(bytes[1],2)],bin.base64chars[bits.lor(bits.lsh((bytes[1] % 4),4), bits.rsh(bytes[2],4))] or "=",((#data-spos) > 1) and bin.base64chars[bits.lor(bits.lsh(bytes[2] % 16,2), bits.rsh(bytes[3],6))] or "=",((#data-spos) > 2) and bin.base64chars[(bytes[3] % 64)] or "=")
-	end
-	return result
-end
-bin.base64bytes = {['A']=0,['B']=1,['C']=2,['D']=3,['E']=4,['F']=5,['G']=6,['H']=7,['I']=8,['J']=9,['K']=10,['L']=11,['M']=12,['N']=13,['O']=14,['P']=15,['Q']=16,['R']=17,['S']=18,['T']=19,['U']=20,['V']=21,['W']=22,['X']=23,['Y']=24,['Z']=25,['a']=26,['b']=27,['c']=28,['d']=29,['e']=30,['f']=31,['g']=32,['h']=33,['i']=34,['j']=35,['k']=36,['l']=37,['m']=38,['n']=39,['o']=40,['p']=41,['q']=42,['r']=43,['s']=44,['t']=45,['u']=46,['v']=47,['w']=48,['x']=49,['y']=50,['z']=51,['0']=52,['1']=53,['2']=54,['3']=55,['4']=56,['5']=57,['6']=58,['7']=59,['8']=60,['9']=61,['-']=62,['_']=63,['=']=nil}
-function bin.fromB64(data)
-	local chars = {}
-	local result=""
-	for dpos=0,string.len(data)-1,4 do
-		for char=1,4 do chars[char] = bin.base64bytes[(string.sub(data,(dpos+char),(dpos+char)) or "=")] end
-		result = string.format('%s%s%s%s',result,string.char(bits.lor(bits.lsh(chars[1],2), bits.rsh(chars[2],4))),(chars[3] ~= nil) and string.char(bits.lor(bits.lsh(chars[2],4), bits.rsh(chars[3],2))) or "",(chars[4] ~= nil) and string.char(bits.lor(bits.lsh(chars[3],6) % 192, (chars[4]))) or "")
-	end
-	return result
-end
-function bin.toHex(str)
-    return (str:gsub('.', function (c)
-        return string.format('%02X', string.byte(c))
-    end))
-end
-function bin.fromHex(str)
-    return (str:gsub('..', function (cc)
-        return string.char(tonumber(cc, 16))
-    end))
-end
--- Constructors
-function bin.new(data)
-	data=tostring(data or "")
-	local c = {}
-    setmetatable(c, bin)
-	c.data=data
-	c.Type="bin"
-	c.t="bin"
-	c.pos=1
-	c.stream=false
-	return c
-end
-function bin.newFromB64(data)
-	return bin.new(bin.fromB64(data))
-end
-function bin.newFromHex(data)
-	return bin.new(bin.fromHex(data))
-end
-function bin.load(path)
-	if type(path) ~= "string" then error("Path must be a string!") end
-	local f = io.open(path, 'rb')
-	local content = f:read('*a')
-	f:close()
-	return bin.new(content)
-end
-function bin.stream(file,l)
-	if not(l==false) then l=true end
-	local c=bin.new()
-	c.Type="streamable"
-	c.t="streamable"
-	if bin.streams[file]~=nil then -- FIX FOR THREADING!!!
-		c.file=file
-		c.lock = l
-		c.workingfile=bin.streams[file].workingfile
-		c.stream=true
-		return c
-	end
-	if bin.fileExist(file) then
-		c.file=file
-		c.lock = l
-		c.workingfile=io.open(file,'rb+')
-	else
-		c.file=file
-		c.lock = l
-		c.workingfile=io.open(file,'w')
-		io.close(c.workingfile)
-		c.workingfile=io.open(file,'rb+')
-	end
-	c.stream=true
-	bin.streams[file]=c -- FIX FOR THREADING!!!
-	return c
-end
-function bin.freshStream(file)
-	bin.new():tofile(file)
-	return bin.stream(file,false)
-end
-function bin.normalizeData(data)
+require("bin.utils")
+local base64=require("bin.base64")
+local base91=require("bin.base91")
+bits=require("bin.bits")
+function bin.normalizeData(data) -- unified function to allow
 	if type(data)=="string" then return data end
 	if type(data)=="table" then
 		if data.Type=="bin" or data.Type=="streamable"  then
 			return data:getData()
 		elseif data.Type=="bits" then
-			-- LATER
+			return data:toSbytes()
 		elseif data.Type=="buffer" then
 			-- LATER
 		elseif data.Type=="sink" then
@@ -142,6 +51,104 @@ function bin.normalizeData(data)
 			return dat
 		end
 	end
+end
+function bin.fileExist(path)
+	g=io.open(path or '','r')
+	if path =='' then
+		p='empty path'
+		return nil
+	end
+	if g~=nil and true or false then
+		p=(g~=nil and true or false)
+	end
+	if g~=nil then
+		io.close(g)
+	else
+		return false
+	end
+	return p
+end
+function bin.toHex(str)
+    return (str:gsub('.', function (c)
+        return string.format('%02X', string.byte(c))
+    end))
+end
+function bin.fromHex(str)
+    return (str:gsub('..', function (cc)
+        return string.char(tonumber(cc, 16))
+    end))
+end
+function bin.toBase64(s)
+	return base64.encode(s)
+end
+function bin.fromBase64(s)
+	return base64.decode(s)
+end
+function bin.toBase91(s)
+	return base91.encode(s)
+end
+function bin.fromBase91(s)
+	return base91.decode(s)
+end
+-- Constructors
+function bin.new(data)
+	data=tostring(data or "")
+	local c = {}
+    setmetatable(c, bin)
+	c.data=data
+	c.Type="bin"
+	c.t="bin"
+	c.pos=1
+	c.stream=false
+	return c
+end
+function bin.newFromBase64(data)
+	return bin.new(bin.fromBase64(data))
+end
+function bin.newFromBase91(data)
+	return bin.new(bin.fromBase91(data))
+end
+function bin.newFromHex(data)
+	return bin.new(bin.fromHex(data))
+end
+function bin.load(path)
+	if type(path) ~= "string" then error("Path must be a string!") end
+	local f = io.open(path, 'rb')
+	local content = f:read('*a')
+	f:close()
+	return bin.new(content)
+end
+function bin.stream(file,l)
+	if not(l==false) then l=true end
+	local c=bin.new()
+	c.Type="streamable"
+	c.t="streamable"
+	if bin.streams[file]~=nil then
+		c.file=file
+		c.lock = l
+		c.workingfile=bin.streams[file][1].workingfile
+		bin.streams[file][2]=bin.streams[file][2]+1
+		c.stream=true
+		return c
+	end
+	if bin.fileExist(file) then
+		c.file=file
+		c.lock = l
+		c.workingfile=io.open(file,'rb+')
+	else
+		c.file=file
+		c.lock = l
+		c.workingfile=io.open(file,'w')
+		io.close(c.workingfile)
+		c.workingfile=io.open(file,'rb+')
+	end
+	c.stream=true
+	bin.streams[file]={c,1}
+	return c
+end
+function bin.freshStream(file)
+	bin.new():tofile(file)
+	return bin.stream(file,false)
 end
 -- Core Methods
 function bin:canStreamWrite()
@@ -184,6 +191,8 @@ function bin:write(data,size)
 	local size=tonumber(size or dsize)
 	if dsize>size then
 		data = data:sub(1,size)
+	elseif dsize<size then
+		data=data..string.rep("\0",size-dsize)
 	end
 	if self:canStreamWrite() then
 		self.workingfile:write(data)
@@ -248,10 +257,32 @@ function bin:getSize(fmt)
 		return len
 	end
 end
-function bin:tackE(data,size)
+function bin:tackE(data,size,h)
 	local data=bin.normalizeData(data)
+	local cur=self:getSize()
 	self:seekSet(self:getSize()+1)
 	self:write(data,size)
+	if h then
+		self:seekSet(cur+1)
+	end
+end
+function bin:tonumber(a,b)
+	local temp={}
+	if a then
+		temp.data=self:sub(a,b)
+	else
+		temp=self
+	end
+	local l,r=0,0
+	local g=#temp.data
+	for i=1,g do
+		r=r+(256^(g-i))*string.byte(string.sub(temp.data,i,i))
+		l=l+(256^(i-1))*string.byte(string.sub(temp.data,i,i))
+	end
+	return r,l
+end
+function bin.endianflop(data)
+	return string.reverse(data)
 end
 function bin:tofile(name)
 	if self.stream then return end
@@ -260,34 +291,22 @@ function bin:tofile(name)
 	file:write(self.data)
 	file:close()
 end
--- Tests
-test=bin.freshStream("../test.dat",false) -- you must stream unlocked to be able to write to it
-test2=bin.load("../test.dat")
-test3=bin.new()
-print("From Stream\n-----------")
-test:seek(2)
-test:write("Like Food",4)
-test:write("!!",2)
-test:seek(10)
-test:write("Hmmmmmm")
-test:tackE("THE END YO!!!")
-test:write("@")
-print(test)
-print("\nFrom Virtual File\n-----------------")
-test2:seek(2)
-test2:write("Like Food",4)
-test2:write("!!",2)
-test2:seek(10)
-test2:write("Hmmmmmm")
-test2:tackE("THE END YO!!!")
-test2:write("@")
-print(test2)
-print("\nFrom Virtual File2\n-----------------")
-test3:seek(2)
-test3:write("Like Food",4)
-test3:write("!!",2)
-test3:seek(10)
-test3:write("Hmmmmmm")
-test3:tackE("THE END YO!!!")
-test3:write("@")
-print(test3)
+function bin.getnumber(num,len,fmt,func)
+	local num=bits.numToBytes(num,len,func)
+	if fmt=="%B" then
+		return bin.endianflop(num)
+	end
+	return num
+end
+function bin:close()
+	if self.stream then
+		if bin.streams[self.file][2]==1 then
+			bin.streams[self.file]=nil
+			self.workingfile:close()
+		else
+			bin.streams[self.file][2]=bin.streams[self.file][2]-1
+			self.workingfile=io.tmpfile()
+			self.workingfile:close()
+		end
+	end
+end

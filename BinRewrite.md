@@ -1,26 +1,32 @@
 # Bin Rewrite Progress!
 **Note: A lot breaks (Almost everything) for the sake of consistency**
-Progress: [==- - - - - - - - 10% - - - - - - - - -]
+Progress: [===- - - - - - - 15% - - - - - - - - -]
 ### List of new methods
-- [x] bin.newFromB64(data)
+- [x] bin.newFromBase64(data)
+- [x] bin.newFromBase91(data)
 - [x] bin.newFromHex(data)
 - [x] bin:read(n) -- works just like normal read on a file for both stream/bin files
 - [x] bin:sub(a,b) -- works like string.sub() but for bin objects
-- [ ] bin:seekSet(n) -- sets the seek position on the file
+- [x] bin:seekSet(n) -- sets the seek position on the file
+- [x] bin.toBase64(s)
+- [x] bin.fromBase64(s)
+- [x] bin.toBase91(s)
+- [x] bin.fromBase91(s)
+- [x] bin.getnumber(num,len,fmt,func)
 
 ### List of converted methods and their status
-- [ ] log(data,name,fmt)
+- [x] log(data,name,fmt)
 - [ ] bin.getLuaVersion()
-- [x] ~~bin.load(filename,s,r)~~
-- [x] ~~bin.new(string data)~~ -- Does not accept b64 or hex data anymore! Use new methods for that ^^^
-- [ ] bin.stream(file,lock)
+- [x] bin.load(filename,s,r)
+- [x] bin.new(string data) -- Does not accept b64 or hex data anymore! Use new methods for that ^^^
+- [x] bin.stream(file,lock)
 - [ ] bin.newTempFile(data)
-- [x] ~~bin:getSize(fmt)~~ -- gets the size of the string fmt is how you want to format it. left empte returns number of bites as a lua number supports lua formats! And also I added the %b format for base64
+- [x] bin:getSize(fmt) -- gets the size of the string fmt is how you want to format it. left empte returns number of bites as a lua number supports lua formats! And also I added the %b format for base64
 - [ ] bin:getData(fmt) -- returns the data of the object as a string, supports %x(hex), %X(HEX) and %b(base64)
-- [ ] bits.new(n)
+- [x] bits.new(n)
 - [ ] bin.newVFS()
-- [x] ~~bin:tackE(data)~~ -- tacks data onto the end of a file
-- [x] ~~bin:tofile(path)~~
+- [x] bin:tackE(data) -- tacks data onto the end of a file
+- [x] bin:tofile(path)
 - [ ] bin.loadVFS(path)
 - [ ] bin:newDataBuffer(s)
 - [ ] bin.bufferToBin(b)
@@ -34,26 +40,26 @@ Progress: [==- - - - - - - - 10% - - - - - - - - -]
 - [ ] bin.NumtoHEX(n)
 - [ ] bin.HEXtoBin(s)
 - [ ] bin.HEXtoStr(s)
-- [x] ~~bin.tohex(s)~~
-- [x] ~~bin.fromhex(s)~~
-- [ ] bin.endianflop(data)
+- [x] bin.tohex(s)
+- [x] bin.fromhex(s)
+- [x] bin.endianflop(data)
 - [ ] bin.getVersion()
 - [ ] bin.escapeStr(str)
 - [ ] bin.ToStr(tab)
 - [ ] bin.packLLIB(name,tab,ext)
 - [ ] bin.unpackLLIB(name,exe,todir,over,ext)
-- [ ] bin.fileExist(path)
+- [ ] ~~bin.fileExist(path)~~ NOW io.fileExists(path)
 - [ ] bin.closeto(a,b,v)
 - [ ] bin.textToBinary(txt)
 - [ ] bin.decodeBits(bindata)
 - [ ] bin.trimNul(s)
 - [ ] bin.getIndexSize(tab)
-- [ ] bits.numToBytes(num,occ)
+- [x] bits.numToBytes(num,occ)
 - [ ] binobj:tofile(filename)
 - [ ] binobj:clone()
 - [ ] binobj:compare(other binobj,diff)
 - [ ] binobj:sub(a,b)
-- [ ] binobj:tonumber(a,b)
+- [x] binobj:tonumber(a,b)
 - [ ] binobj:getbyte(n)
 - [ ] binobj:tobits(i)
 - [ ] binobj:getHEX(a,b)
@@ -61,11 +67,11 @@ Progress: [==- - - - - - - - 10% - - - - - - - - -]
 - [ ] binobj:streamData(a,b)
 - [ ] binobj:streamread(a,b)
 - [ ] binobj:canStreamWrite()
-- [ ] bitobj:conv(n)
-- [ ] bitobj:tobytes()
-- [ ] bitobj:tonumber()
-- [ ] bitobj:isover()
-- [ ] bitobj:getBin()
+- [x] bitobj:conv(n)
+- [x] bitobj:tobytes()
+- [x] bitobj:tonumber()
+- [x] bitobj:isover()
+- [x] bitobj:getBin()
 - [ ] binobj:getHash(n)
 - [ ] binobj:getData()
 - [ ] blockReader:getBlock(name)
@@ -88,25 +94,25 @@ Progress: [==- - - - - - - - 10% - - - - - - - - -]
 - [ ] binobj:cryptM()
 - [ ] binobj:addBlock(d,n)
 - [ ] binobj:getBlock(t,n)
-- [x] ~~binobj:seek(n)~~
+- [x] binobj:seek(n)
 - [ ] binobj:morph(a,b,d)
 - [ ] binobj:fill(n,d)
 - [ ] binobj:fillrandom(n)
 - [ ] binobj:shiftbits(n)
 - [ ] binobj:shiftbit(n,i)
 - [ ] binobj:streamwrite(d,n)
-- [ ] binobj:open()
-- [ ] binobj:close()
+- [ ] ~~binobj:open()~~
+- [x] binobj:close()
 - [ ] binobj:wipe()
 - [ ] binobj:tackB(d)
-- [ ] binobj:tackE(d)
+- [x] binobj:tackE(d,fit,updateseek)
 - [ ] binobj:parse(n,f)
 - [ ] binobj:flipbit(i)
 - [ ] binobj:gsub()
 - [ ] blockWriter:addNamedBlock(name,value)
-- [ ] bitobj:add(i)
-- [ ] bitobj:sub(i)
-- [ ] bitobj:multi(i)
-- [ ] bitobj:div(i)
-- [ ] bitobj:flipbits()
-- [ ] bitobj:getBin()
+- [ ] ~~bitobj:add(i)~~
+- [ ] ~~bitobj:sub(i)~~
+- [ ] ~~bitobj:multi(i)~~
+- [ ] ~~bitobj:div(i)~~
+- [x] bitobj:flipbits()
+- [x] bitobj:getBin()
