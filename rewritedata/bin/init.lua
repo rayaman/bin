@@ -8,15 +8,13 @@ bin.t='bin'
 bin.__index = bin
 bin.__tostring=function(self) return self:getData() end
 bin.__len=function(self) return self:getlength() end
-bits={}
-bits.data=''
-bits.t='bits'
-bits.__index = bits
-bits.__tostring=function(self) return self.data end
-bits.__len=function(self) return (#self.data)/8 end
 bin.lastBlockSize=0
 bin.streams={} -- FIX FOR THREADING!!!
 -- Helpers
+function bin.getVersion()
+	return bin.Version[1]..'.'..bin.Version[2]..'.'..bin.Version[3]
+end
+require("bin.utils")
 if jit then
 	bit=require("bit")
 elseif bit32 then
@@ -24,10 +22,14 @@ elseif bit32 then
 else
 	bit=require("bin.no_jit_bit")
 end
-require("bin.utils")
 local base64=require("bin.base64")
 local base91=require("bin.base91")
 bits=require("bin.bits")
+infinabits=require("bin.infinabits") -- like the bits library but works past 32 bits for 32bit lua and 64 bits for 64 bit lua... infinabits!!!!
+function bin.setBitsInterface(int)
+	bin.defualtBit=int or bits
+end
+bin.setBitsInterface()
 function bin.normalizeData(data) -- unified function to allow
 	if type(data)=="string" then return data end
 	if type(data)=="table" then
@@ -146,6 +148,14 @@ function bin.stream(file,l)
 	bin.streams[file]={c,1}
 	return c
 end
+function bin.newTempFile()
+	local c=bin.new()
+	c.file=file
+	c.lock = false
+	c.workingfile=io.tmpfile()
+	c.stream=true
+	return c
+end
 function bin.freshStream(file)
 	bin.new():tofile(file)
 	return bin.stream(file,false)
@@ -153,6 +163,13 @@ end
 -- Core Methods
 function bin:canStreamWrite()
 	return (self.stream and not(self.lock))
+end
+function bin:getSeek()
+	if self.stream then
+		return self.workingfile:seek("cur")
+	else
+		return self.pos
+	end
 end
 function bin:seekSet(n)
 	if self.stream then
@@ -309,4 +326,54 @@ function bin:close()
 			self.workingfile:close()
 		end
 	end
+end
+function bin:getBlock(t,n)
+	local data=""
+	if not n then
+		if bin.registerBlocks[t] then
+			return bin.registerBlocks[t][1](nil,self)
+		else
+			error("Unknown format! Cannot read from file: "..tostring(t))
+		end
+	else
+		if t=="n" or t=="%e" or t=="%E" then
+			data=self:read(n)
+			local numB=bin.defualtBit.new(data)
+			local numL=bin.defualtBit.new(string.reverse(data))
+			local little=numL:tonumber(0)
+			local big=numB:tonumber(0)
+			if t=="%E" then
+				return big
+			elseif t=="%e" then
+				return little
+			end
+			return big,little
+		elseif t=="s" then
+			return self:read(n)
+		elseif bin.registerBlocks[t] then
+			return bin.registerBlocks[t][1](n,self)
+		else
+			error("Unknown format! Cannot read from file: "..tostring(t))
+		end
+	end
+end
+function bin:addBlock(d,fit,fmt)
+	if type(d)=="number" then
+		local data=bin.defualtBit.numToBytes(d,fit or 4,fmt,function()
+			error("Overflow! Space allotted for number is smaller than the number takes up. Increase the fit!")
+		end)
+		self:tackE(data)
+	elseif type(d)=="string" then
+		local data=d:sub(1,fit or -1)
+		if data<(fit or #data) then
+			data=data..string.rep("\0",fit-#data)
+		end
+		self:tackE(data)
+	elseif bin.registerBlocks[fmt] then
+		self:tackE(bin.registerBlocks[fmt][2](d,fit,fmt,self,bin.registerBlocks[fmt][2]))
+	end
+end
+bin.registerBlocks={}
+function bin.registerBlock(t,funcG,funcA)
+	bin.registerBlocks[t]={funcG,funcA}
 end

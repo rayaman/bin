@@ -109,26 +109,48 @@ for i=0,255 do
 	bits.ref[d]=i
 	bits.ref["\255"..string.char(i)]=d
 end
-function bits.numToBytes(n,fit,func)
-	local num=bits.new(n):toSbytes()
-	num=bin.endianflop(num)
-	local ref={["num"]=num,["fit"]=fit}
-	if fit then
-		if fit<#num then
-			if func then
-				print("Warning: attempting to store a number that takes up more space than allotted! Using provided method!")
-				func(ref)
+function bits.numToBytes(n,fit,fmt,func)
+	if fmt=="%e" then
+		local num=string.reverse(bits.new(n):toSbytes())
+		local ref={["num"]=num,["fit"]=fit}
+		if fit then
+			if fit<#num then
+				if func then
+					print("Warning: attempting to store a number that takes up more space than allotted! Using provided method!")
+					func(ref)
+				else
+					print("Warning: attempting to store a number that takes up more space than allotted!")
+				end
+				return ref.num:sub(1,ref.fit)
+			elseif fit==#num then
+				return num
 			else
-				print("Warning: attempting to store a number that takes up more space than allotted!")
+				return string.rep("\0",fit-#num)..num
 			end
-			return ref.num:sub(1,ref.fit)
-		elseif fit==#num then
-			return num
 		else
-			return string.rep("\0",fit-#num)..num
+			return num
 		end
+
 	else
-		return num
+		local num=string.reverse(bits.new(n):toSbytes())
+		local ref={["num"]=num,["fit"]=fit}
+		if fit then
+			if fit<#num then
+				if func then
+					print("Warning: attempting to store a number that takes up more space than allotted! Using provided method!")
+					func(ref)
+				else
+					print("Warning: attempting to store a number that takes up more space than allotted!")
+				end
+				return ref.num:sub(1,ref.fit)
+			elseif fit==#num then
+				return string.reverse(num)
+			else
+				return string.reverse(string.rep("\0",fit-#num)..num)
+			end
+		else
+			return string.reverse(num)
+		end
 	end
 end
 function bits:conv(n)
@@ -138,13 +160,13 @@ function bits:conv(n)
 		n=math.floor(n/2)
 	end
 	local str=string.reverse(table.concat(tab))
-	if #str%8~=0 then
+	if #str%8~=0 or #str==0 then
 		str=string.rep('0',8-#str%8)..str
 	end
 	return str
 end
-function bits:tonumber(s)
-	if type(s)=='string' then
+function bits:tonumber(s,e)
+	if s==0 then
 		return tonumber(self.data,2)
 	end
 	s=s or 1

@@ -1,6 +1,7 @@
 # Bin Rewrite Progress!
-**Note: A lot breaks (Almost everything) for the sake of consistency**
-Progress: [===- - - - - - - 15% - - - - - - - - -]
+My vision for the bin library is to provide great and consistant support for binary minipulation... The old version was not consistant with how I wanted things to work. Great things to come!
+**Note: A lot breaks (Almost everything)**
+Progress: [====- - - - - - 20% - - - - - - - - -]
 ### List of new methods
 - [x] bin.newFromBase64(data)
 - [x] bin.newFromBase91(data)
@@ -13,6 +14,8 @@ Progress: [===- - - - - - - 15% - - - - - - - - -]
 - [x] bin.toBase91(s)
 - [x] bin.fromBase91(s)
 - [x] bin.getnumber(num,len,fmt,func)
+- [x] New infinabits! Works like bits, but supports numbers up to infinity
+- [x] bin.registerBlock(t,funcG,funcA) -- allows you to add custom block commands, I implemented the table block command using this feature
 
 ### List of converted methods and their status
 - [x] log(data,name,fmt)
@@ -20,9 +23,9 @@ Progress: [===- - - - - - - 15% - - - - - - - - -]
 - [x] bin.load(filename,s,r)
 - [x] bin.new(string data) -- Does not accept b64 or hex data anymore! Use new methods for that ^^^
 - [x] bin.stream(file,lock)
-- [ ] bin.newTempFile(data)
+- [x] bin.newTempFile(data)
 - [x] bin:getSize(fmt) -- gets the size of the string fmt is how you want to format it. left empte returns number of bites as a lua number supports lua formats! And also I added the %b format for base64
-- [ ] bin:getData(fmt) -- returns the data of the object as a string, supports %x(hex), %X(HEX) and %b(base64)
+- [x] bin:getData(fmt) -- returns the data of the object as a string, supports %x(hex), %X(HEX) and %b(base64)
 - [x] bits.new(n)
 - [ ] bin.newVFS()
 - [x] bin:tackE(data) -- tacks data onto the end of a file
@@ -43,7 +46,7 @@ Progress: [===- - - - - - - 15% - - - - - - - - -]
 - [x] bin.tohex(s)
 - [x] bin.fromhex(s)
 - [x] bin.endianflop(data)
-- [ ] bin.getVersion()
+- [x] bin.getVersion()
 - [ ] bin.escapeStr(str)
 - [ ] bin.ToStr(tab)
 - [ ] bin.packLLIB(name,tab,ext)
@@ -66,7 +69,7 @@ Progress: [===- - - - - - - 15% - - - - - - - - -]
 - [ ] binobj:scan(s,n,f)
 - [ ] binobj:streamData(a,b)
 - [ ] binobj:streamread(a,b)
-- [ ] binobj:canStreamWrite()
+- [x] binobj:canStreamWrite()
 - [x] bitobj:conv(n)
 - [x] bitobj:tobytes()
 - [x] bitobj:tonumber()
@@ -92,8 +95,8 @@ Progress: [===- - - - - - - 15% - - - - - - - - -]
 - [ ] binobj:parseA(n,a,t)
 - [ ] binobj:getHEX(a,b)
 - [ ] binobj:cryptM()
-- [ ] binobj:addBlock(d,n)
-- [ ] binobj:getBlock(t,n)
+- [x] binobj:addBlock(d,fit,fmt)
+- [x] binobj:getBlock(t,n)
 - [x] binobj:seek(n)
 - [ ] binobj:morph(a,b,d)
 - [ ] binobj:fill(n,d)
