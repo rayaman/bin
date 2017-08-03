@@ -1,6 +1,7 @@
 local bits={}
 bits.data=''
 bits.t='bits'
+bits.Type='bits'
 bits.__index = bits
 bits.__tostring=function(self) return self.data end
 bits.__len=function(self) return (#self.data)/8 end

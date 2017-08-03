@@ -1,7 +1,7 @@
 # Bin Rewrite Progress!
 My vision for the bin library is to provide great and consistant support for binary minipulation... The old version was not consistant with how I wanted things to work. Great things to come!
 **Note: A lot breaks (Almost everything)**
-Progress: [====- - - - - - 20% - - - - - - - - -]
+Progress: [=====- - - - - 25% - - - - - - - - -]
 ### List of new methods
 - [x] bin.newFromBase64(data)
 - [x] bin.newFromBase91(data)
@@ -31,7 +31,7 @@ Progress: [====- - - - - - 20% - - - - - - - - -]
 - [x] bin:tackE(data) -- tacks data onto the end of a file
 - [x] bin:tofile(path)
 - [ ] bin.loadVFS(path)
-- [ ] bin:newDataBuffer(s)
+- [x] bin:newDataBuffer(size,fill)
 - [ ] bin.bufferToBin(b)
 - [ ] bin.binToBuffer(b)
 - [ ] bin:getDataBuffer(a,b)
@@ -40,19 +40,19 @@ Progress: [====- - - - - - 20% - - - - - - - - -]
 - [ ] bin.loadNamedBlock(path)
 - [ ] bin.namedBlockManager(arg)
 - [ ] bin.randomName(n,ext)
-- [ ] bin.NumtoHEX(n)
-- [ ] bin.HEXtoBin(s)
-- [ ] bin.HEXtoStr(s)
+- [ ] ~~bin.NumtoHEX(n)~~
+- [ ] ~~bin.HEXtoBin(s)~~
+- [ ] ~~bin.HEXtoStr(s)~~
 - [x] bin.tohex(s)
 - [x] bin.fromhex(s)
 - [x] bin.endianflop(data)
 - [x] bin.getVersion()
 - [ ] bin.escapeStr(str)
-- [ ] bin.ToStr(tab)
-- [ ] bin.packLLIB(name,tab,ext)
-- [ ] bin.unpackLLIB(name,exe,todir,over,ext)
+- [ ] ~~bin.ToStr(tab)~~
+- [ ] ~~bin.packLLIB(name,tab,ext)~~
+- [ ] ~~bin.unpackLLIB(name,exe,todir,over,ext)~~
 - [ ] ~~bin.fileExist(path)~~ NOW io.fileExists(path)
-- [ ] bin.closeto(a,b,v)
+- [ ] ~~bin.closeto(a,b,v)~~
 - [ ] bin.textToBinary(txt)
 - [ ] bin.decodeBits(bindata)
 - [ ] bin.trimNul(s)

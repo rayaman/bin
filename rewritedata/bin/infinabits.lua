@@ -2,6 +2,7 @@ local binNum=require("bin.BigNum")
 local infinabits={}
 infinabits.data=''
 infinabits.t='infinabits'
+infinabits.Type='infinabits'
 infinabits.__index = infinabits
 infinabits.__tostring=function(self) return self.data end
 infinabits.__len=function(self) return (#self.data)/8 end

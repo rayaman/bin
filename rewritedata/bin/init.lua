@@ -33,12 +33,10 @@ bin.setBitsInterface()
 function bin.normalizeData(data) -- unified function to allow
 	if type(data)=="string" then return data end
 	if type(data)=="table" then
-		if data.Type=="bin" or data.Type=="streamable"  then
+		if data.Type=="bin" or data.Type=="streamable" or data.Type=="buffer" then
 			return data:getData()
-		elseif data.Type=="bits" then
+		elseif data.Type=="bits" or data.Type=="infinabits" then
 			return data:toSbytes()
-		elseif data.Type=="buffer" then
-			-- LATER
 		elseif data.Type=="sink" then
 			-- LATER
 		else
@@ -267,7 +265,7 @@ function bin:getSize(fmt)
 		len=#self.data
 	end
 	if fmt=="%b" then
-		--return bin.toB64() -- LATER
+		return bin.toB64()
 	elseif fmt then
 		return string.format(fmt, len)
 	else
@@ -308,13 +306,6 @@ function bin:tofile(name)
 	file:write(self.data)
 	file:close()
 end
-function bin.getnumber(num,len,fmt,func)
-	local num=bits.numToBytes(num,len,func)
-	if fmt=="%B" then
-		return bin.endianflop(num)
-	end
-	return num
-end
 function bin:close()
 	if self.stream then
 		if bin.streams[self.file][2]==1 then
@@ -344,6 +335,12 @@ function bin:getBlock(t,n)
 			local big=numB:tonumber(0)
 			if t=="%E" then
 				return big
+			elseif t=="%X" then
+				return bin.toHex(data):upper()
+			elseif t=="%x" then
+				return bin.toHex(data):lower()
+			elseif t=="%b" then
+				return bin.toB64(data)
 			elseif t=="%e" then
 				return little
 			end
@@ -377,3 +374,4 @@ bin.registerBlocks={}
 function bin.registerBlock(t,funcG,funcA)
 	bin.registerBlocks[t]={funcG,funcA}
 end
+require("bin.extraBlocks") -- registered blocks that you can use
