@@ -42,7 +42,7 @@ true
 table: 0x001e3f40
 ```
 
-# The bin library **had** all of these features, a lot has been striped use the BinRewrite for info on what stayed!
+# The bin library **had** all of these features, a lot has been stripped use the BinRewrite for info on what stayed!
 
 Note: Examples of everything in action wll be made eventually...</br>
 nil					 = log(data,name,fmt)  -- data is the text that you want to log to a file, the name argument only needs to be called with the first log. It tells where to log to. If name is used again it will change the location of the log file.</br>
