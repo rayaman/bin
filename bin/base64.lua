@@ -22,10 +22,7 @@ function base64.decode(s)
 	local n=0
 	s=s:sub(1,#s-#p)..p
 	for c = 1,#s,4 do
-		n = bit.lshift(bsd[s:sub(c, c)], 18)
-		+ bit.lshift(bsd[s:sub(c+1, c+1)], 12)
-		+ bit.lshift(bsd[s:sub(c + 2, c + 2)], 6)
-		+ bsd[s:sub(c + 3, c + 3)]
+		n = bit.lshift(bsd[s:sub(c, c)], 18) + bit.lshift(bsd[s:sub(c+1, c+1)], 12) + bit.lshift(bsd[s:sub(c + 2, c + 2)], 6) + bsd[s:sub(c + 3, c + 3)]
 		r = r .. char(bit.band(bit.arshift(n, 16), 0xFF)) .. char(bit.band(bit.arshift(n, 8), 0xFF)) .. char(bit.band(n, 0xFF))
 	end
 	return r:sub(1,-(cc+1))

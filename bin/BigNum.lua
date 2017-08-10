@@ -1,56 +1,8 @@
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%{{{1
---
---  File Name:              bignum.lua
---  Package Name:           BigNum
---
---  Project:    Big Numbers library for Lua
---  Mantainers: fmp - Frederico Macedo Pessoa
---              msm - Marco Serpa Molinaro
---
---  History:
---     Version      Autor       Date            Notes
---      1.1      fmp/msm    12/11/2004   Some bug fixes (thanks Isaac Gouy)
---      alfa     fmp/msm    03/22/2003   Start of Development
---      beta     fmp/msm    07/11/2003   Release
---
---  Description:
---    Big numbers manipulation library for Lua.
---    A Big Number is a table with as many numbers as necessary to represent
---       its value in base 'RADIX'. It has a field 'len' containing the num-
---       ber of such numbers and a field 'signal' that may assume the values
---       '+' and '-'.
---
---$.%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
---%%%%%%%%  Constants used in the file %%%%%%%%--{{{1
    RADIX = 10^7 ;
    RADIX_LEN = math.floor( math.log10 ( RADIX ) ) ;
 
-
---%%%%%%%%        Start of Code        %%%%%%%%--
-
 BigNum = {} ;
 BigNum.mt = {} ;
-
-
---BigNum.new{{{1
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
---
---  Function: New
---
---
---  Description:
---     Creates a new Big Number based on the parameter num.
---
---  Parameters:
---     num - a string, number or BigNumber.
---
---  Returns:
---     A Big Number, or a nil value if an error occured.
---
---
---  %%%%%%%% --
 
 function BigNum.new( num ) --{{{2
    local bignum = {} ;
@@ -59,8 +11,6 @@ function BigNum.new( num ) --{{{2
    return bignum ;
 end
 
---%%%%%%%%%%%%%%%%%%%% Functions for metatable %%%%%%%%%%%%%%%%%%%%--{{{1
---BigNum.mt.sub{{{2
 function BigNum.mt.sub( num1 , num2 )
    local temp = BigNum.new() ;
    local bnum1 = BigNum.new( num1 ) ;
@@ -71,7 +21,6 @@ end
 function BigNum.mt.mod( num1 , num2 )
    return BigNum.new(num1 - (num1/num2)*num2)
 end
---BigNum.mt.add{{{2
 function BigNum.mt.add( num1 , num2 )
    local temp = BigNum.new() ;
    local bnum1 = BigNum.new( num1 ) ;
@@ -80,7 +29,6 @@ function BigNum.mt.add( num1 , num2 )
    return temp ;
 end
 
---BigNum.mt.mul{{{2
 function BigNum.mt.mul( num1 , num2 )
    local temp = BigNum.new() ;
    local bnum1 = BigNum.new( num1 ) ;
@@ -89,7 +37,6 @@ function BigNum.mt.mul( num1 , num2 )
    return temp ;
 end
 
---BigNum.mt.div{{{2
 function BigNum.mt.div( num1 , num2 )
    local bnum1 = {} ;
    local bnum2 = {} ;
@@ -101,7 +48,6 @@ function BigNum.mt.div( num1 , num2 )
    return bnum3 , bnum4 ;
 end
 
---BigNum.mt.tostring{{{2
 function BigNum.mt.tostring( bnum )
    local i = 0 ;
    local j = 0 ;
@@ -129,35 +75,30 @@ function BigNum.mt.tostring( bnum )
    end
 end
 
---BigNum.mt.pow{{{2
 function BigNum.mt.pow( num1 , num2 )
    local bnum1 = BigNum.new( num1 ) ;
    local bnum2 = BigNum.new( num2 ) ;
    return BigNum.pow( bnum1 , bnum2 ) ;
 end
 
---BigNum.mt.eq{{{2
 function BigNum.mt.eq( num1 , num2 )
    local bnum1 = BigNum.new( num1 ) ;
    local bnum2 = BigNum.new( num2 ) ;
    return BigNum.eq( bnum1 , bnum2 ) ;
 end
 
---BigNum.mt.lt{{{2
 function BigNum.mt.lt( num1 , num2 )
    local bnum1 = BigNum.new( num1 ) ;
    local bnum2 = BigNum.new( num2 ) ;
    return BigNum.lt( bnum1 , bnum2 ) ;
 end
 
---BigNum.mt.le{{{2
 function BigNum.mt.le( num1 , num2 )
    local bnum1 = BigNum.new( num1 ) ;
    local bnum2 = BigNum.new( num2 ) ;
    return BigNum.le( bnum1 , bnum2 ) ;
 end
 
---BigNum.mt.unm{{{2
 function BigNum.mt.unm( num )
    local ret = BigNum.new( num )
    if ret.signal == '+' then
@@ -168,13 +109,8 @@ function BigNum.mt.unm( num )
    return ret
 end
 
---%%%%%%%%%%%%%%%%%%%% Metatable Definitions %%%%%%%%%%%%%%%%%%%%--{{{1
-
-BigNum.mt.__metatable = "hidden"           ; -- answer to getmetatable(aBignum)
--- BigNum.mt.__index     = "inexistent field" ; -- attempt to acess nil valued field
--- BigNum.mt.__newindex  = "not available"    ; -- attempt to create new field
+BigNum.mt.__metatable = "hidden"
 BigNum.mt.__tostring  = BigNum.mt.tostring ;
--- arithmetics
 BigNum.mt.__add = BigNum.mt.add ;
 BigNum.mt.__sub = BigNum.mt.sub ;
 BigNum.mt.__mul = BigNum.mt.mul ;
@@ -182,36 +118,10 @@ BigNum.mt.__div = BigNum.mt.div ;
 BigNum.mt.__pow = BigNum.mt.pow ;
 BigNum.mt.__unm = BigNum.mt.unm ;
 BigNum.mt.__mod = BigNum.mt.mod ;
--- Comparisons
 BigNum.mt.__eq = BigNum.mt.eq   ;
 BigNum.mt.__le = BigNum.mt.le   ;
 BigNum.mt.__lt = BigNum.mt.lt   ;
---concatenation
--- BigNum.me.__concat = ???
-
 setmetatable( BigNum.mt, { __index = "inexistent field", __newindex = "not available", __metatable="hidden" } ) ;
-
---%%%%%%%%%%%%%%%%%%%% Basic Functions %%%%%%%%%%%%%%%%%%%%--{{{1
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%{{{2
---
---  Function: ADD
---
---
---  Description:
---     Adds two Big Numbers.
---
---  Parameters:
---     bnum1, bnum2 - Numbers to be added.
---     bnum3 - result
---
---  Returns:
---     0
---
---  Exit assertions:
---     bnum3 is the result of the sum.
---
---  %%%%%%%% --
---Funcao BigNum.add{{{2
 function BigNum.add( bnum1 , bnum2 , bnum3 )
    local maxlen = 0 ;
    local i = 0 ;
@@ -273,34 +183,11 @@ function BigNum.add( bnum1 , bnum2 , bnum3 )
    return 0 ;
 end
 
-
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%{{{2
---
---  Function: SUB
---
---
---  Description:
---     Subtracts two Big Numbers.
---
---  Parameters:
---     bnum1, bnum2 - Numbers to be subtracted.
---     bnum3 - result
---
---  Returns:
---     0
---
---  Exit assertions:
---     bnum3 is the result of the subtraction.
---
---  %%%%%%%% --
---Funcao BigNum.sub{{{2
 function BigNum.sub( bnum1 , bnum2 , bnum3 )
    local maxlen = 0 ;
    local i = 0 ;
    local carry = 0 ;
    local old_len = 0 ;
-   --Handle the signals
-
    if bnum1 == nil or bnum2 == nil or bnum3 == nil then
       error("Function BigNum.sub: parameter nil") ;
    elseif bnum1.signal == '-' and bnum2.signal == '+' then
@@ -373,28 +260,6 @@ function BigNum.sub( bnum1 , bnum2 , bnum3 )
    return 0 ;
 end
 
-
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%{{{2
---
---  Function: MUL
---
---
---  Description:
---     Multiplies two Big Numbers.
---
---  Parameters:
---     bnum1, bnum2 - Numbers to be multiplied.
---     bnum3 - result
---
---  Returns:
---     0
---
---  Exit assertions:
---     bnum3 is the result of the multiplication.
---
---  %%%%%%%% --
---BigNum.mul{{{2
---can't be made in place
 function BigNum.mul( bnum1 , bnum2 , bnum3 )
    local i = 0 ; j = 0 ;
    local temp = BigNum.new( ) ;
@@ -445,29 +310,6 @@ function BigNum.mul( bnum1 , bnum2 , bnum3 )
    return 0 ;
 end
 
-
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%{{{2
---
---  Function: DIV
---
---
---  Description:
---     Divides bnum1 by bnum2.
---
---  Parameters:
---     bnum1, bnum2 - Numbers to be divided.
---     bnum3 - result
---     bnum4 - remainder
---
---  Returns:
---     0
---
---  Exit assertions:
---     bnum3 is the result of the division.
---     bnum4 is the remainder of the division.
---
---  %%%%%%%% --
---BigNum.div{{{2
 function BigNum.div( bnum1 , bnum2 , bnum3 , bnum4 )
    local temp = BigNum.new() ;
    local temp2 = BigNum.new() ;
@@ -544,25 +386,6 @@ function BigNum.div( bnum1 , bnum2 , bnum3 , bnum4 )
    return 0 ;
 end
 
---%%%%%%%%%%%%%%%%%%%% Compound Functions %%%%%%%%%%%%%%%%%%%%--{{{1
-
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%{{{2
---
---  Function: POW / EXP
---
---
---  Description:
---     Computes a big number which represents the bnum2-th power of bnum1.
---
---  Parameters:
---     bnum1 - base
---     bnum2 - expoent
---
---  Returns:
---     Returns a big number which represents the bnum2-th power of bnum1.
---
---  %%%%%%%% --
---BigNum.exp{{{2
 function BigNum.pow( bnum1 , bnum2 )
    local n = BigNum.new( bnum2 ) ;
    local y = BigNum.new( 1 ) ;
@@ -589,22 +412,6 @@ end
 -- Português :
 BigNum.exp = BigNum.pow
 
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%{{{2
---
---  Function: GCD / MMC
---
---
---  Description:
---     Computes the greatest commom divisor of bnum1 and bnum2.
---
---  Parameters:
---     bnum1, bnum2 - positive numbers
---
---  Returns:
---     Returns a big number witch represents the gcd between bnum1 and bnum2.
---
---  %%%%%%%% --
---BigNum.gcd{{{2
 function BigNum.gcd( bnum1 , bnum2 )
    local a = {} ;
    local b = {} ;
@@ -630,24 +437,6 @@ end
 -- Português:
 BigNum.mmc = BigNum.gcd
 
---%%%%%%%%%%%%%%%%%%%% Comparison Functions %%%%%%%%%%%%%%%%%%%%--{{{1
-
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%{{{2
---
---  Function: EQ
---
---
---  Description:
---     Compares two Big Numbers.
---
---  Parameters:
---     bnum1, bnum2 - numbers
---
---  Returns:
---     Returns true if they are equal or false otherwise.
---
---  %%%%%%%% --
---BigNum.eq{{{2
 function BigNum.eq( bnum1 , bnum2 )
    if BigNum.compare( bnum1 , bnum2 ) == 0 then
       return true ;
@@ -656,22 +445,6 @@ function BigNum.eq( bnum1 , bnum2 )
    end
 end
 
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%{{{2
---
---  Function: LT
---
---
---  Description:
---     Verifies if bnum1 is lesser than bnum2.
---
---  Parameters:
---     bnum1, bnum2 - numbers
---
---  Returns:
---     Returns true if bnum1 is lesser than bnum2 or false otherwise.
---
---  %%%%%%%% --
---BigNum.lt{{{2
 function BigNum.lt( bnum1 , bnum2 )
    if BigNum.compare( bnum1 , bnum2 ) == 2 then
       return true ;
@@ -680,23 +453,6 @@ function BigNum.lt( bnum1 , bnum2 )
    end
 end
 
-
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%{{{2
---
---  Function: LE
---
---
---  Description:
---     Verifies if bnum1 is lesser or equal than bnum2.
---
---  Parameters:
---     bnum1, bnum2 - numbers
---
---  Returns:
---     Returns true if bnum1 is lesser or equal than bnum2 or false otherwise.
---
---  %%%%%%%% --
---BigNum.le{{{2
 function BigNum.le( bnum1 , bnum2 )
    local temp = -1 ;
    temp = BigNum.compare( bnum1 , bnum2 )
@@ -707,24 +463,6 @@ function BigNum.le( bnum1 , bnum2 )
    end
 end
 
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%{{{2
---
---  Function: Compare Absolute Values
---
---
---  Description:
---     Compares absolute values of bnum1 and bnum2.
---
---  Parameters:
---     bnum1, bnum2 - numbers
---
---  Returns:
---     1 - |bnum1| > |bnum2|
---     2 - |bnum1| < |bnum2|
---     0 - |bnum1| = |bnum2|
---
---  %%%%%%%% --
---BigNum.compareAbs{{{2
 function BigNum.compareAbs( bnum1 , bnum2 )
    if bnum1 == nil or bnum2 == nil then
       error("Function compare: parameter nil") ;
@@ -745,25 +483,6 @@ function BigNum.compareAbs( bnum1 , bnum2 )
    return 0 ;
 end
 
-
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%{{{2
---
---  Function: Compare
---
---
---  Description:
---     Compares values of bnum1 and bnum2.
---
---  Parameters:
---     bnum1, bnum2 - numbers
---
---  Returns:
---     1 - |bnum1| > |bnum2|
---     2 - |bnum1| < |bnum2|
---     0 - |bnum1| = |bnum2|
---
---  %%%%%%%% --
---BigNum.compare{{{2
 function BigNum.compare( bnum1 , bnum2 )
    local signal = 0 ;
 
@@ -793,9 +512,6 @@ function BigNum.compare( bnum1 , bnum2 )
    return 0 ;
 end
 
-
---%%%%%%%%%%%%%%%%%%%% Low level Functions %%%%%%%%%%%%%%%%%%%%--{{{1
---BigNum.copy{{{2
 function BigNum.copy( bnum1 , bnum2 )
    if bnum1 ~= nil and bnum2 ~= nil then
       local i ;
@@ -808,25 +524,6 @@ function BigNum.copy( bnum1 , bnum2 )
    end
 end
 
-
---%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%{{{2
---
---  Function: Change
---
---  Description:
---     Changes the value of a BigNum.
---     This function is called by BigNum.new.
---
---  Parameters:
---     bnum1, bnum2 - numbers
---
---  Returns:
---     1 - |bnum1| > |bnum2|
---     2 - |bnum1| < |bnum2|
---     0 - |bnum1| = |bnum2|
---
---  %%%%%%%% --
---BigNum.change{{{2
 function BigNum.change( bnum1 , num )
    local j = 0 ;
    local len = 0  ;
@@ -933,9 +630,6 @@ function BigNum.change( bnum1 , num )
    return 0 ;
 end
 
---BigNum.put{{{2
---Places int in the position pos of bignum, fills before with zeroes and
---after with nil.
 function BigNum.put( bnum , int , pos )
    if bnum == nil then
       error("Function BigNum.put: parameter nil") ;

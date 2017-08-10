@@ -1,9 +1,10 @@
 # bin
 
 The binary manipulation library make file management a simple task.</br>
-Allows for a wide range of features that can be used, the library is a bit of a mess though and isn't at a point that I am happy with yet.</br>
+Rewrite done for the most part: Checkout BinRewrite.md to view changes
 Basic usage:
 ```lua
+-- Some changes are needed for this to work
 require("bin")
 print("TEST - 1")
 test=bin.new("I am a string in a bin")
@@ -41,7 +42,7 @@ true
 table: 0x001e3f40
 ```
 
-# The bin library has all of these features
+# The bin library **had** all of these features, a lot has been striped use the BinRewrite for info on what stayed!
 
 Note: Examples of everything in action wll be made eventually...</br>
 nil					 = log(data,name,fmt)  -- data is the text that you want to log to a file, the name argument only needs to be called with the first log. It tells where to log to. If name is used again it will change the location of the log file.</br>

@@ -1,5 +1,3 @@
--- Well Its finally time for that massive rewrite that has been long awaited for
--- We need to keep things thread safe or the rewrite would have been in vain... Also this will ensure that all features are working perfectly
 bin={}
 bin.Version={5,0,0}
 bin.stage='stable'
@@ -9,7 +7,7 @@ bin.__index = bin
 bin.__tostring=function(self) return self:getData() end
 bin.__len=function(self) return self:getlength() end
 bin.lastBlockSize=0
-bin.streams={} -- FIX FOR THREADING!!!
+bin.streams={}
 -- Helpers
 function bin.getVersion()
 	return bin.Version[1]..'.'..bin.Version[2]..'.'..bin.Version[3]
@@ -22,15 +20,18 @@ elseif bit32 then
 else
 	bit=require("bin.no_jit_bit")
 end
-local base64=require("bin.base64")
-local base91=require("bin.base91")
+base64=require("bin.base64")
+base91=require("bin.base91")
+bin.lzw=require("bin.lzw") -- A WIP
 bits=require("bin.bits")
-infinabits=require("bin.infinabits") -- like the bits library but works past 32 bits for 32bit lua and 64 bits for 64 bit lua... infinabits!!!!
+infinabits=require("bin.infinabits") -- like the bits library but works past 32 bits for 32bit lua and 64 bits for 64 bit lua.
+bin.md5=require("bin.md5")
+randomGen=require("bin.random")
 function bin.setBitsInterface(int)
 	bin.defualtBit=int or bits
 end
 bin.setBitsInterface()
-function bin.normalizeData(data) -- unified function to allow
+function bin.normalizeData(data) -- unified function to allow for all types to string
 	if type(data)=="string" then return data end
 	if type(data)=="table" then
 		if data.Type=="bin" or data.Type=="streamable" or data.Type=="buffer" then
@@ -40,7 +41,7 @@ function bin.normalizeData(data) -- unified function to allow
 		elseif data.Type=="sink" then
 			-- LATER
 		else
-			error("I do not know how to handle this data!")
+			return ""
 		end
 	elseif type(data)=="userdata" then
 		if tostring(data):sub(1,4)=="file" then
@@ -49,8 +50,34 @@ function bin.normalizeData(data) -- unified function to allow
 			local dat=data:read("*a")
 			data:seek("set",cur)
 			return dat
+		else
+			error("File handles are the only userdata that can be used!")
 		end
 	end
+end
+function bin.resolveType(tab) -- used in getblock for auto object creation. Internal method
+	if tab.Type then
+		if tab.Type=="bin" then
+			return bin.new(tab.data)
+		elseif tab.Type=="streamable" then
+			if bin.fileExist(tab.file) then return nil,"Cannot load the stream file, source file does not exist!" end
+			return bin.stream(tab.file,tab.lock)
+		elseif tab.Type=="buffer" then
+			local buf=bin.newDataBuffer(tab.size)
+			buf[1]=tab:getData()
+			return buf
+		elseif tab.Type=="bits" then
+			local b=bits.new("")
+			b.data=tab.data
+			return b
+		elseif tab.Type=="infinabits" then
+			local b=infinabits.new("")
+			b.data=tab.data
+			return b
+		elseif tab.Type=="sink" then
+			return bin.newSync(tab.data)
+		end
+	else return tab end
 end
 function bin.fileExist(path)
 	g=io.open(path or '','r')
@@ -92,7 +119,7 @@ function bin.fromBase91(s)
 end
 -- Constructors
 function bin.new(data)
-	data=tostring(data or "")
+	data=bin.normalizeData(data)
 	local c = {}
     setmetatable(c, bin)
 	c.data=data
@@ -164,12 +191,12 @@ function bin:canStreamWrite()
 end
 function bin:getSeek()
 	if self.stream then
-		return self.workingfile:seek("cur")
+		return self.workingfile:seek("cur")+1
 	else
 		return self.pos
 	end
 end
-function bin:seekSet(n)
+function bin:setSeek(n)
 	if self.stream then
 		self.workingfile:seek("set",n-1)
 	else
@@ -197,6 +224,7 @@ function bin:read(n)
 	else
 		local data=self.data:sub(self.pos,self.pos+n-1)
 		self.pos=self.pos+n
+		if data=="" then return end
 		return data
 	end
 end
@@ -236,15 +264,19 @@ function bin:sub(a,b)
 	end
 	return data
 end
-function bin:getData(fmt)
+function bin:getData(a,b,fmt)
 	local data=""
-	if self.stream then
-		local cur=self.workingfile:seek("cur")
-		self.workingfile:seek("set",0)
-		data=self.workingfile:read("*a")
-		self.workingfile:seek("set",cur)
+	if a or b then
+		data=self:sub(a,b)
 	else
-		data=self.data
+		if self.stream then
+			local cur=self.workingfile:seek("cur")
+			self.workingfile:seek("set",0)
+			data=self.workingfile:read("*a")
+			self.workingfile:seek("set",cur)
+		else
+			data=self.data
+		end
 	end
 	if fmt=="%x" or fmt=="hex" then
 		return bin.toHex(data):lower()
@@ -252,6 +284,8 @@ function bin:getData(fmt)
 		return bin.toHex(data)
 	elseif fmt=="%b" or fmt=="b64" then
 		return bin.toB64(data)
+	elseif fmt then
+		return bin.new(data):getBlock(fmt,#data)
 	end
 	return data
 end
@@ -275,10 +309,10 @@ end
 function bin:tackE(data,size,h)
 	local data=bin.normalizeData(data)
 	local cur=self:getSize()
-	self:seekSet(self:getSize()+1)
+	self:setSeek(self:getSize()+1)
 	self:write(data,size)
 	if h then
-		self:seekSet(cur+1)
+		self:setSeek(cur+1)
 	end
 end
 function bin:tonumber(a,b)
@@ -355,6 +389,7 @@ function bin:getBlock(t,n)
 	end
 end
 function bin:addBlock(d,fit,fmt)
+	if not fmt then fmt=type(d):sub(1,1) end
 	if type(d)=="number" then
 		local data=bin.defualtBit.numToBytes(d,fit or 4,fmt,function()
 			error("Overflow! Space allotted for number is smaller than the number takes up. Increase the fit!")
@@ -362,7 +397,7 @@ function bin:addBlock(d,fit,fmt)
 		self:tackE(data)
 	elseif type(d)=="string" then
 		local data=d:sub(1,fit or -1)
-		if data<(fit or #data) then
+		if #data<(fit or #data) then
 			data=data..string.rep("\0",fit-#data)
 		end
 		self:tackE(data)
@@ -373,5 +408,172 @@ end
 bin.registerBlocks={}
 function bin.registerBlock(t,funcG,funcA)
 	bin.registerBlocks[t]={funcG,funcA}
+end
+function bin.newDataBuffer(size,fill) -- fills with \0 or nul or with what you enter
+	local c={}
+	local fill=fill or "\0"
+	c.data={self=c}
+	c.Type="buffer"
+	c.size=size or 0 -- 0 means an infinite buffer, sometimes useful
+	for i=1,size do
+		c.data[i]=fill
+	end
+	local mt={
+		__index=function(t,k)
+			if type(k)=="number" then
+				local data=t.data[k]
+				if data then
+					return string.byte(data)
+				else
+					error("Index out of range!")
+				end
+			elseif type(k)=="string" then
+				local num=tonumber(k)
+				if num then
+					local data=t.data[num]
+					if data then
+						return data
+					else
+						error("Index out of range!")
+					end
+				else
+					error("Only number-strings and numbers can be indexed!")
+				end
+			else
+				error("Only number-strings and numbers can be indexed!")
+			end
+		end,
+		__newindex=function(t,k,v)
+			if type(k)~="number" then error("Can only set a buffers data with a numeric index!") end
+			local data=""
+			if type(v)=="string" then
+				data=v
+			elseif type(v)=="number" then
+				data=string.char(v)
+			else
+				-- try to normalize the data of type v
+				data=bin.normalizeData(v)
+			end
+			t:fillBuffer(k,data)
+		end,
+		__tostring=function(t)
+			return t:getData()
+		end,
+	}
+	function c:fillBuffer(a,data)
+		local len=#data
+		if len==1 then
+			self.data[a]=data
+		else
+			local i=a-1
+			for d in data:gmatch(".") do
+				i=i+1
+				if i>c.size then
+					return #data-i+a
+				end
+				self.data[i]=d
+			end
+			return #data-i+(a-1)
+		end
+	end
+	function c:getData(a,b,fmt) -- LATER
+		local dat=bin.new(table.concat(self.data,"",a,b))
+		local n=dat:getSize()
+		return dat:getBlock(fmt or "s",n)
+	end
+	function c:getSize()
+		return #self:getData()
+	end
+	setmetatable(c,mt)
+	return c
+end
+function bin:newDataBufferFromStream(pos,size,fill) -- fills with \0 or nul or with what you enter IF the nothing exists inside the bin file.
+	local s=self:getSize()
+	if not self.stream then error("Can only created a streamed buffer on a streamable file!") end
+	if s==0 then
+		self:write(string.rep("\0",pos+size))
+	end
+	self:setSeek(1)
+	local c=bin.newDataBuffer(size,fill)
+	rawset(c,"pos",pos)
+	rawset(c,"size",size)
+	rawset(c,"fill",fill)
+	rawset(c,"bin",self)
+	rawset(c,"sync",function(self)
+		local cur=self.bin:getSeek()
+		self.bin:setSeek(self.pos)
+		self.bin:write(self:getData(),size)
+		self.bin:setSeek(cur)
+	end)
+	c:fillBuffer(1,self:sub(pos,pos+size))
+	function c:fillBuffer(a,data)
+		local len=#data
+		if len==1 then
+			self.data[a]=data
+			self:sync()
+		else
+			local i=a-1
+			for d in data:gmatch(".") do
+				i=i+1
+				if i>c.size then
+					self:sync()
+					return #data-i+a
+				end
+				self.data[i]=d
+			end
+			self:sync()
+			return #data-i+(a-1)
+		end
+	end
+	return c
+end
+function bin:getMD5Hash()
+	self:setSeek(1)
+	local len=self:getSize()
+	local md5=bin.md5.new()
+	local SIZE=2048
+	if len>SIZE then
+		local dat=self:read(SIZE)
+		while dat~=nil do
+			md5:update(dat)
+			dat=self:read(SIZE)
+		end
+		return bin.md5.tohex(md5:finish()):upper()
+	else
+		return bin.md5.sumhexa(self:getData()):upper()
+	end
+end
+function bin:getHash()
+	if self:getSize()==0 then
+		return "NaN"
+	end
+	n=32
+	local rand = randomGen:newND(1,self:getSize(),self:getSize())
+	local h,g={},0
+	for i=1,n do
+		g=rand:nextInt()
+		table.insert(h,bin.toHex(self:sub(g,g)))
+	end
+	return table.concat(h,'')
+end
+function bin:flipbits()
+	if self:canStreamWrite() then
+		self:setSeek(1)
+		for i=1,self:getSize() do
+			self:write(string.char(255-string.byte(self:sub(i,i))))
+		end
+	else
+		local temp={}
+		for i=1,#self.data do
+			table.insert(temp,string.char(255-string.byte(string.sub(self.data,i,i))))
+		end
+		self.data=table.concat(temp,'')
+	end
+end
+function bin:encrypt()
+	self:flipbits()
+end
+function bin:decrypt()
+	self:flipbits()
 end
 require("bin.extraBlocks") -- registered blocks that you can use

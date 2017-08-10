@@ -84,7 +84,8 @@ function bits.new(n,s)
 		end
 	end
 	local temp={}
-	temp.t='bit'
+	temp.t='bits'
+	temp.Type="bits"
 	setmetatable(temp, bits)
 	if type(n)~='string' then
 		local tab={}

@@ -1,7 +1,8 @@
+local __CURRENTVERSION=1
 bin.registerBlock("t",function(SIZE_OR_NIL,ref)
 	local header=ref:read(3)
 	if not header:match("(LT.)") then error("Not a valid table struct!") end
-	if bin.defualtBit.new(header:sub(3,3)):tonumber(1)~=0 then error("Incompatible Version of LuaTable!") end
+	if bin.defualtBit.new(header:sub(3,3)):tonumber(1)>__CURRENTVERSION then error("Incompatible Version of LuaTable!") end
 	local len=ref:getBlock("n",4) -- hehe lets make life easier
 	local tab={}
 	local ind
@@ -20,6 +21,14 @@ bin.registerBlock("t",function(SIZE_OR_NIL,ref)
 		if dt=="N" then
 			tab[ind]=ref:getBlock("n",4)
 			n=n+4
+		elseif dt=="I" then
+			tab[ind]=math.huge()
+			ref:getBlock("n",4)
+			n=n+4
+		elseif dt=="i" then
+			tab[ind]=-math.huge()
+			ref:getBlock("n",4)
+			n=n+4
 		elseif dt=="S" then
 			local nn=ref:getBlock("n",4)
 			tab[ind]=ref:read(nn)
@@ -34,23 +43,40 @@ bin.registerBlock("t",function(SIZE_OR_NIL,ref)
 		elseif dt=="T" then
 			local cur=ref:getSeek()
 			local size=ref:getBlock("n",4)
-			ref:seekSet(cur)
+			ref:setSeek(cur)
 			ref:read(4)
 			local data=bin.new(ref:read(size))
 			local dat=data:getBlock("t")
-			tab[ind]=dat
+			if dat.__RECURSIVE then
+				tab[ind]=tab
+			else
+				tab[ind]=dat
+			end
 			n=n+data:getSize()+4
 		end
 		if n==len then break end
 	end
-	return tab
-end,function(d,fit,fmt,self,rec)
+	return bin.resolveType(tab)
+end,function(d,fit,fmt,self,rec,tabsaw)
 	-- INGORE FIT WE ARE CREATING A STRUCT!!!
 	-- fmt will apply to all numbers
+	local __rem=nil
+	if not tabsaw then rem=true end
+	local tabsaw=tabsaw or {}
+	if rem then
+		table.insert(tabsaw,d)
+	end
 	local bData={}
 	for i,v in pairs(d) do -- this is for tables, all but userdata is fine. Depending on where you are using lua functions may or may not work
 		local tp=type(v):sub(1,1):upper() -- uppercase of datatype
 		if type(i)=="number" then -- Lets handle indexies
+			if v==math.huge then
+				tp="I"
+				v=0
+			elseif v==-math.huge then
+				tp="i"
+				v=0
+			end
 			table.insert(bData,"N"..tp..bin.defualtBit.numToBytes(i,4)) -- number index?
 		elseif type(i)=="string" then
 			if #i>255 then error("A string index cannot be larger than 255 bytes!") end
@@ -72,11 +98,28 @@ end,function(d,fit,fmt,self,rec)
 			table.insert(bData,bin.defualtBit.numToBytes(#dump,4)) -- add length of dumped string
 			table.insert(bData,dump) -- add it
 		elseif type(v)=="table" then -- tables...
-			local data=rec(v,nil,"t",self,rec)
+			if tabsaw[1]==v then
+				v={__RECURSIVE=i}
+			else
+				tabsaw[i]=v
+			end
+			local data=rec(v,nil,"t",self,rec,tabsaw)
 			table.insert(bData,bin.defualtBit.numToBytes(#data,4)) -- add length of string
 			table.insert(bData,data) -- add string
 		end
 	end
 	local data=table.concat(bData)
-	return "LT\0"..bin.defualtBit.numToBytes(#data,4)..data
+	return "LT"..string.char(__CURRENTVERSION)..bin.defualtBit.numToBytes(#data,4)..data
+end)
+bin.registerBlock("b",function(SIZE_OR_NIL,ref)
+	return ({["\255"]=true,["\0"]=false})[ref:read(1)]
+end,function(d)
+	return ({[true]="\255",[false]="\0"})[d]
+end)
+bin.registerBlock("f",function(SIZE_OR_NIL,ref)
+	local nn=ref:getBlock("n",4)
+	return loadstring(ref:read(nn))
+end,function(d)
+	local dump=string.dump(d)
+	return bin.defualtBit.numToBytes(#dump,4)..dump
 end)

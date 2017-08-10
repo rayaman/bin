@@ -96,7 +96,8 @@ function infinabits.newByteArray(s)-- WIP
 end
 function infinabits.new(n,binary)
 	local temp={}
-	temp.t='bit'
+	temp.t="infinabits"
+	temp.Type="infinabits"
 	if type(n)=="string" then
 		if binary then
 			temp.data=n:match("[10]+")
