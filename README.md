@@ -4,7 +4,6 @@ The binary manipulation library make file management a simple task.</br>
 Rewrite done for the most part: Checkout BinRewrite.md to view changes
 Basic usage:
 ```lua
--- Some changes are needed for this to work
 require("bin")
 print("TEST - 1")
 test=bin.new("I am a string in a bin")
@@ -41,7 +40,32 @@ Hello
 true
 table: 0x001e3f40
 ```
+#Updates/Changes
+Version 5.0.1
+-------------
+Cleaned up files within the bin folder
+Added:
++ bin:toDataBuffer()
+[Converts a binobj to a data buffer]
++ bin:slide(n)
+[changes the value of the characters by n, if n>255 it will wrap back around to 0]
 
+Note: While streamable files can handle massive files without an issue, converting a massive file to a databuffer will probably throw a memory error!
+
+Example:
+```lua
+t=bin.new("Hello")
+print(t)
+t:slide(50)
+print(t)
+t:slide(-50)
+print(t)
+--~ t2=bin.stream("test.dat",false) -- make sure you have this file first than test the code
+--~ tt=t2:toDataBuffer()
+--~ print(tt[1])
+```
+Notes:
+------
 # The bin library **had** all of these features, a lot has been stripped use the BinRewrite for info on what stayed!
 
 Note: Examples of everything in action wll be made eventually...</br>

@@ -1,5 +1,5 @@
 bin={}
-bin.Version={5,0,0}
+bin.Version={5,0,1}
 bin.stage='stable'
 bin.data=''
 bin.t='bin'
@@ -12,21 +12,21 @@ bin.streams={}
 function bin.getVersion()
 	return bin.Version[1]..'.'..bin.Version[2]..'.'..bin.Version[3]
 end
-require("bin.utils")
+require("bin.support.utils")
 if jit then
 	bit=require("bit")
 elseif bit32 then
 	bit=bit32
 else
-	bit=require("bin.no_jit_bit")
+	bit=require("bin.numbers.no_jit_bit")
 end
-base64=require("bin.base64")
-base91=require("bin.base91")
-bin.lzw=require("bin.lzw") -- A WIP
-bits=require("bin.bits")
-infinabits=require("bin.infinabits") -- like the bits library but works past 32 bits for 32bit lua and 64 bits for 64 bit lua.
-bin.md5=require("bin.md5")
-randomGen=require("bin.random")
+base64=require("bin.converters.base64")
+base91=require("bin.converters.base91")
+bin.lzw=require("bin.compressors.lzw") -- A WIP
+bits=require("bin.numbers.bits")
+infinabits=require("bin.numbers.infinabits") -- like the bits library but works past 32 bits for 32bit lua and 64 bits for 64 bit lua.
+bin.md5=require("bin.hashes.md5")
+randomGen=require("bin.numbers.random")
 function bin.setBitsInterface(int)
 	bin.defualtBit=int or bits
 end
@@ -185,6 +185,16 @@ function bin.freshStream(file)
 	bin.new():tofile(file)
 	return bin.stream(file,false)
 end
+function bin.newStreamFileObject(file)
+	local c=bin.new()
+	c.Type="streamable"
+	c.t="streamable"
+	c.file="FILE_OBJECT"
+	c.lock = false
+	c.workingfile=file
+	c.stream=true
+	return c
+end
 -- Core Methods
 function bin:canStreamWrite()
 	return (self.stream and not(self.lock))
@@ -263,6 +273,22 @@ function bin:sub(a,b)
 		data=self.data:sub(a,b)
 	end
 	return data
+end
+function bin:slide(n)
+	local s=self:getSize()
+	local buf=bin.newDataBuffer(s)
+	buf:fillBuffer(1,self:getData())
+	for i=1,s do
+		nn=buf[i]+n
+		if nn>255 then
+			nn=nn%256
+		elseif nn<0 then
+			nn=256-math.abs(nn)
+		end
+		buf[i]=nn
+	end
+	self:setSeek(1)
+	self:write(buf:getData())
 end
 function bin:getData(a,b,fmt)
 	local data=""
@@ -415,7 +441,7 @@ function bin.newDataBuffer(size,fill) -- fills with \0 or nul or with what you e
 	c.data={self=c}
 	c.Type="buffer"
 	c.size=size or 0 -- 0 means an infinite buffer, sometimes useful
-	for i=1,size do
+	for i=1,c.size do
 		c.data[i]=fill
 	end
 	local mt={
@@ -527,6 +553,21 @@ function bin:newDataBufferFromStream(pos,size,fill) -- fills with \0 or nul or w
 	end
 	return c
 end
+function bin:toDataBuffer()
+	local s=self:getSize()
+	-- if self:canStreamWrite() then
+		-- return self:newDataBufferFromStream(0,s)
+	-- end
+	local buf=bin.newDataBuffer(s)
+	local data=self:read(512)
+	local i=1
+	while data~=nil do
+		buf[i]=data
+		data=self:read(512)
+		i=i+512
+	end
+	return buf
+end
 function bin:getMD5Hash()
 	self:setSeek(1)
 	local len=self:getSize()
@@ -576,4 +617,120 @@ end
 function bin:decrypt()
 	self:flipbits()
 end
-require("bin.extraBlocks") -- registered blocks that you can use
+-- Use with small files!
+function bin:gsub(...)
+	local data=self:getData()
+	local pos=self:getSeek()
+	self:setSeek(1)
+	self:write((data:gsub(...)) or data)
+	self:setSeek(loc)
+end
+function bin:gmatch(pat)
+	return self:getData():gmatch(pat)
+end
+function bin:match(pat)
+	return self:getData():match(pat)
+end
+function bin:trim()
+	local data=self:getData()
+	local pos=self:getSeek()
+	self:setSeek(1)
+	self:write(data:match'^()%s*$' and '' or data:match'^%s*(.*%S)')
+	self:setSeek(loc)
+end
+function bin:lines()
+	local t = {}
+	local function helper(line) table.insert(t, line) return '' end
+	helper((self:getData():gsub('(.-)\r?\n', helper)))
+	return t
+end
+function bin._lines(str)
+	local t = {}
+	local function helper(line) table.insert(t, line) return '' end
+	helper((str:gsub('(.-)\r?\n', helper)))
+	return t
+end
+function bin:wipe()
+	if self:canStreamWrite() then
+		self:close()
+		local c=bin.freshStream(self.file)
+		self.workingfile=c.workingfile
+	else
+		self.data=""
+	end
+	self:setSeek(1)
+end
+function bin:fullTrim(empty)
+	local t=self:lines()
+	for i=#t,1,-1 do
+		t[i]=bin._trim(t[i])
+		if empty then
+			if t[i]=="" then
+				table.remove(t,i)
+			end
+		end
+	end
+	self:wipe()
+	self:write(table.concat(t,"\n"))
+end
+require("bin.support.extraBlocks") -- registered blocks that you can use
+if love then
+	function bin.load(file,s,r)
+		content, size = love.filesystem.read(file)
+		local temp=bin.new(content)
+		temp.filepath=file
+		return temp
+	end
+	function bin:tofile(filename)
+		if not(filename) or self.Stream then return nil end
+		love.filesystem.write(filename,self.data)
+	end
+	function bin.stream(file)
+		return bin.newStreamFileObject(love.filesystem.newFile(file))
+	end
+	function bin:getSize(fmt)
+		local len=0
+		if self.stream then
+			local len=self.workingfile:getSize()
+		else
+			len=#self.data
+		end
+		if fmt=="%b" then
+			return bin.toB64()
+		elseif fmt then
+			return string.format(fmt, len)
+		else
+			return len
+		end
+	end
+	function bin:getSeek()
+		if self.stream then
+			return self.workingfile:tell()+1
+		else
+			return self.pos
+		end
+	end
+	function bin:setSeek(n)
+		if self.stream then
+			self.workingfile:seek(n-1)
+		else
+			self.pos=n
+		end
+	end
+	function bin:seek(n)
+		if self.stream then
+			self.workingfile:seek(n)
+		else
+			if not n then return self.pos end
+			if #self.data-(self.pos-1)<n then
+				print(n-((#self.data)-(self.pos-1)))
+				self:write(string.rep("\0",n-((#self.data)-(self.pos-1))))
+				return
+			end
+			self.pos=self.pos+n
+		end
+	end
+	function bin:close()
+		self.workingfile:close()
+	end
+end
