@@ -95,11 +95,12 @@ function bits.new(n,s)
 		end
 		local str=string.reverse(table.concat(tab))
 		if #str%8~=0 then
-			str=string.rep('0',8-#str%8)..str
+			temp.data=string.rep('0',8-(#str))..str
+		elseif #str==0 then
+			temp.data="00000000"
 		end
-		temp.data=str
 	else
-		temp.data=n
+		temp.data=n or "00000000"
 	end
 	setmetatable({__tostring=function(self) return self.data end},temp)
 	return temp
