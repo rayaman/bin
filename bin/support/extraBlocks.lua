@@ -8,7 +8,9 @@ bin.registerBlock("t",function(SIZE_OR_NIL,ref)
 	local ind
 	local n=0
 	while true do
-		local it,dt=ref:read(2):match("(.)(.)")
+		local _dat=ref:read(2)
+		if _dat==nil then break end
+		local it,dt=_dat:match("(.)(.)")
 		n=n+2
 		if it=="N" then -- get the index stuff out of the way first
 			ind=ref:getBlock("n",4)
@@ -45,14 +47,20 @@ bin.registerBlock("t",function(SIZE_OR_NIL,ref)
 			local size=ref:getBlock("n",4)
 			ref:setSeek(cur)
 			ref:read(4)
-			local data=bin.new(ref:read(size))
-			local dat=data:getBlock("t")
-			if dat.__RECURSIVE then
-				tab[ind]=tab
+			if size==7 then
+				tab[ind]={}
+				ref:read(7)
+				n=n+11
 			else
-				tab[ind]=dat
+				local data=bin.new(ref:read(size))
+				local dat=data:getBlock("t")
+				if dat.__RECURSIVE then
+					tab[ind]=tab
+				else
+					tab[ind]=dat
+				end
+				n=n+data:getSize()+4
 			end
-			n=n+data:getSize()+4
 		end
 		if n==len then break end
 	end

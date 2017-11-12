@@ -76,6 +76,8 @@ function bin.resolveType(tab) -- used in getblock for auto object creation. Inte
 			return b
 		elseif tab.Type=="sink" then
 			return bin.newSync(tab.data)
+		else -- maybe a type from another library
+			return tab
 		end
 	else return tab end
 end
