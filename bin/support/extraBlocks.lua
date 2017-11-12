@@ -24,11 +24,11 @@ bin.registerBlock("t",function(SIZE_OR_NIL,ref)
 			tab[ind]=ref:getBlock("n",4)
 			n=n+4
 		elseif dt=="I" then
-			tab[ind]=math.huge()
+			tab[ind]=math.huge
 			ref:getBlock("n",4)
 			n=n+4
 		elseif dt=="i" then
-			tab[ind]=-math.huge()
+			tab[ind]=-math.huge
 			ref:getBlock("n",4)
 			n=n+4
 		elseif dt=="S" then
