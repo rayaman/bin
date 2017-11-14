@@ -41,7 +41,7 @@ true
 table: 0x001e3f40
 ```
 #Updates/Changes
-Version 5.0.5
+Version 5.0.6
 -------------
 Fixed a bunch of bugs and added double support to the library
 
