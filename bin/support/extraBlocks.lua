@@ -1,4 +1,4 @@
-local __CURRENTVERSION=1
+local __CURRENTVERSION=2
 bin.registerBlock("t",function(SIZE_OR_NIL,ref)
 	local header=ref:read(3)
 	if not header:match("(LT.)") then error("Not a valid table struct!") end
@@ -21,8 +21,8 @@ bin.registerBlock("t",function(SIZE_OR_NIL,ref)
 			ind=ref:read(indL)
 		end
 		if dt=="N" then
-			tab[ind]=ref:getBlock("n",4)
-			n=n+4
+			tab[ind]=ref:getBlock("d")
+			n=n+8
 		elseif dt=="I" then
 			tab[ind]=math.huge
 			ref:getBlock("n",4)
@@ -94,7 +94,9 @@ end,function(d,fit,fmt,self,rec,tabsaw)
 		end
 		if type(v)=="number" then
 			-- How do we handle number data
-			table.insert(bData,bin.defualtBit.numToBytes(v,4))
+			local temp=bin.new()
+			temp:addBlock(v,nil,"d")
+			table.insert(bData,temp.data)
 		elseif type(v)=="string" then
 			-- Lets work on strings
 			table.insert(bData,bin.defualtBit.numToBytes(#v,4)) -- add length of string
@@ -130,4 +132,15 @@ bin.registerBlock("f",function(SIZE_OR_NIL,ref)
 end,function(d)
 	local dump=string.dump(d)
 	return bin.defualtBit.numToBytes(#dump,4)..dump
+end)
+bin.registerBlock("d",function(SIZE_OR_NIL,ref)
+	local w,p=ref:getBlock("n",4),ref:getBlock("n",4)
+	p=tonumber("0."..tostring(p))
+	return w+p
+end,function(d,fit,fmt,self,rec,tabsaw)
+	local w,p = toFraction(d)
+	local temp=bin.new()
+	temp:addBlock(w,4)
+	temp:addBlock(p,4)
+	return temp.data
 end)

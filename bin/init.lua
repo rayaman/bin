@@ -1,5 +1,5 @@
 bin={}
-bin.Version={5,0,3}
+bin.Version={5,0,1}
 bin.stage='stable'
 bin.data=''
 bin.t='bin'
@@ -98,6 +98,7 @@ function bin.fileExist(path)
 	return p
 end
 function bin.toHex(str)
+	local str=bin.normalizeData(str)
     return (str:gsub('.', function (c)
         return string.format('%02X', string.byte(c))
     end))
@@ -418,7 +419,9 @@ function bin:getBlock(t,n)
 end
 function bin:addBlock(d,fit,fmt)
 	if not fmt then fmt=type(d):sub(1,1) end
-	if type(d)=="number" then
+	if bin.registerBlocks[fmt] then
+		self:tackE(bin.registerBlocks[fmt][2](d,fit,fmt,self,bin.registerBlocks[fmt][2]))
+	elseif type(d)=="number" then
 		local data=bin.defualtBit.numToBytes(d,fit or 4,fmt,function()
 			error("Overflow! Space allotted for number is smaller than the number takes up. Increase the fit!")
 		end)
@@ -429,8 +432,6 @@ function bin:addBlock(d,fit,fmt)
 			data=data..string.rep("\0",fit-#data)
 		end
 		self:tackE(data)
-	elseif bin.registerBlocks[fmt] then
-		self:tackE(bin.registerBlocks[fmt][2](d,fit,fmt,self,bin.registerBlocks[fmt][2]))
 	end
 end
 bin.registerBlocks={}

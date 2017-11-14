@@ -1,37 +1,44 @@
-package.path="?/init.lua;?.lua;"..package.path
-require("multi")
-require("bin")
---~ function bin.streamCipherEncrypt(data,key)
---~
---~ end
---~ t=bin.new("Hello")
---~ print(t)
---~ t:slide(50)
---~ print(t)
---~ t:slide(-50)
---~ print(t)
---~ t2=bin.stream("test.dat",false)
---~ tt=t2:toDataBuffer()
---~ print(tt[1])
-print("TEST - 1")
-test=bin.new("I am a string in a bin")
-print(test)
-print("TEST - 2: Writing a test file to disk")
-test2=bin.freshStream("newFileToStreamWriteTo.dat",false)
-test2:addBlock(1234,4)
-test2:addBlock("Hello",5)
-test2:addBlock(true) -- always 1 and a lua type
-test2:addBlock({1,2,3,4,5}) -- depends and is a lua type
-test2:close()
-print("test 2 done")
-print("TEST - 3: reading the file we wrote to disk")
-test3=bin.load("newFileToStreamWriteTo.dat") -- binary file
-nL,nB=test3:getBlock("n",4) -- reads the first 4 bytes as a number
--- litte endian, big endian
-print(nL,nB)
-str=test3:getBlock("s",5)
-print(str)
-bool=test3:getBlock("b")
-print(bool)
-tab=test3:getBlock("t")
-print(tab)
+function bubbleSort(A)
+  local itemCount=#A
+  local hasChanged
+  repeat
+	for i=1,#A do
+		io.write(string.char(A[i]))
+	end
+	io.write("\n")
+    hasChanged = false
+    itemCount=itemCount - 1
+    for i = 1, itemCount do
+      if A[i] > A[i + 1] then
+        A[i], A[i + 1] = A[i + 1], A[i]
+        hasChanged = true
+      end
+    end
+  until hasChanged == false
+end
+reflist={"A","S","S","I","G","N","M","E","N","T"}
+list={}
+list2={}
+for i,v in pairs(reflist) do
+	list[#list+1]=string.byte(v)
+	list2[#list2+1]=string.byte(v)
+end
+function SelectionSort(f)
+    for k = 1, #f-1 do
+		for i=1,#f do
+			io.write(string.char(f[i]))
+		end
+		io.write("\n")
+        local idx = k
+        for i = k+1, #f do
+            if f[i] < f[idx] then
+                idx = i
+            end
+        end
+        f[k], f[idx] = f[idx], f[k]
+    end
+end
+print("Bubble Sort")
+bubbleSort(list)
+print("Selection Sort")
+SelectionSort(list2)

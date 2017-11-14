@@ -19,6 +19,13 @@ function table.flip(t)
 	end
 	return tt
 end
+function toFraction(n)
+	local w,p=math.modf(n)
+	if p~=0 then
+		p=tonumber(tostring(p):sub(3))
+	end
+	return w,p
+end
 function io.cleanName(name)
 	name=name:gsub("\\","")
 	name=name:gsub("/","")
