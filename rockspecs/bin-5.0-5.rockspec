@@ -1,8 +1,8 @@
 package = "bin"
-version = "5.0-4"
+version = "5.0-5"
 source = {
    url = "git://github.com/rayaman/bin.git",
-   tag = "v5.0.4",
+   tag = "v5.0.5",
 }
 description = {
    summary = "Lua Binary ManIpulatioN library",

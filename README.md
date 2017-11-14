@@ -41,6 +41,10 @@ true
 table: 0x001e3f40
 ```
 #Updates/Changes
+Version 5.0.5
+-------------
+Fixed a bunch of bugs and added double support to the library
+
 Version 5.0.1
 -------------
 Cleaned up files within the bin folder
