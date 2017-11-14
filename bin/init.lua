@@ -1,5 +1,5 @@
 bin={}
-bin.Version={5,0,1}
+bin.Version={5,0,4}
 bin.stage='stable'
 bin.data=''
 bin.t='bin'
