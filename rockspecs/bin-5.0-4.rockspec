@@ -2,7 +2,7 @@ package = "bin"
 version = "5.0-4"
 source = {
    url = "git://github.com/rayaman/bin.git",
-   tag = "v5.0.0",
+   tag = "v5.0.4",
 }
 description = {
    summary = "Lua Binary ManIpulatioN library",
@@ -21,18 +21,18 @@ build = {
    modules = {
       -- Note the required Lua syntax when listing submodules as keys
       ["bin.init"] = "bin/init.lua",
-      ["bin.base64"] = "bin/base64.lua",
-      ["bin.base91"] = "bin/base91.lua",
-      ["bin.BigNum"] = "bin/BigNum.lua",
-      ["bin.BigRat"] = "bin/BigRat.lua",
-      ["bin.bits"] = "bin/bits.lua",
-      ["bin.extrablocks"] = "bin/extrablocks.lua",
-      ["bin.infinabits"] = "bin/infinabits.lua",
-      ["bin.lzw"] = "bin/lzw.lua",
-      ["bin.md5"] = "bin/md5.lua",
-      ["bin.no_jit_bit"] = "bin/no_jit_bit.lua",
-      ["bin.random"] = "bin/random.lua",
-      ["bin.utils"] = "bin/utils.lua",
-      ["bin.vfs"] = "bin/vfs.lua",
+      ["bin.converters.base64"] = "bin/converters/base64.lua",
+      ["bin.converters.base91"] = "bin/converters/base91.lua",
+      ["bin.numbers.BigNum"] = "bin/numbers/BigNum.lua",
+      ["bin.numbers.BigRat"] = "bin/numbers/BigRat.lua",
+      ["bin.numbers.bits"] = "bin/numbers/bits.lua",
+      ["bin.support.extrablocks"] = "bin/support/extrablocks.lua",
+      ["bin.numbers.infinabits"] = "bin/numbers/infinabits.lua",
+      ["bin.compressors.lzw"] = "bin/compressors/lzw.lua",
+      ["bin.hashes.md5"] = "bin/hashes/md5.lua",
+      ["bin.numbers.no_jit_bit"] = "bin/numbers/no_jit_bit.lua",
+      ["bin.numbers.random"] = "bin/numbers/random.lua",
+      ["bin.support.utils"] = "bin/support/utils.lua",
+      ["bin.support.vfs"] = "bin/support/vfs.lua",
    }
 }
