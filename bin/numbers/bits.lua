@@ -5,12 +5,29 @@ bits.Type='bits'
 bits.__index = bits
 bits.__tostring=function(self) return self.data end
 bits.__len=function(self) return (#self.data)/8 end
+local floor,insert = math.floor, table.insert
 function bits.newBitBuffer(n)
 	--
 end
 function bits.newConverter(bitsIn,bitsOut)
 	local c={}
 	--
+end
+function basen(n,b)
+    if not b or b == 10 then return tostring(n) end
+    local digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    local t = {}
+    local sign = ""
+    if n < 0 then
+        sign = "-"
+    n = -n
+    end
+    repeat
+        local d = n % b + 1
+        n = n / b
+        insert(t, 1, digits:sub(d,d))
+    until n == 0
+    return sign .. table.concat(t,"")
 end
 bits.ref={}
 function bits.newByte(d)
@@ -67,42 +84,27 @@ function bits.newByteArray(s)
 	end
 	return c
 end
-function bits.new(n,s)
-	if type(n)=='string' then
-		local t=tonumber(n,2)
-		if t and #n<8 and not(s) then
-			t=nil
-		end
-		if not(t) then
-			t={}
+function bits.new(n,binary)
+	local temp={}
+	temp.t="bits"
+	temp.Type="bits"
+	if type(n)=="string" then
+		if binary then
+			temp.data=n:match("[10]+")
+		else
+			local t={}
 			for i=#n,1,-1 do
 				table.insert(t,bits:conv(string.byte(n,i)))
 			end
-			n=table.concat(t)
-		else
-			n=t
+			temp.data=table.concat(t)
 		end
+	elseif type(n)=="number" or type(n)=="table" then
+		temp.data=basen(n,2)
 	end
-	local temp={}
-	temp.t='bits'
-	temp.Type="bits"
+	if #temp.data%8~=0 then
+		temp.data=string.rep('0',8-#temp.data%8)..temp.data
+	end
 	setmetatable(temp, bits)
-	if type(n)~='string' then
-		local tab={}
-		while n>=1 do
-			table.insert(tab,n%2)
-			n=math.floor(n/2)
-		end
-		local str=string.reverse(table.concat(tab))
-		if #str%8~=0 then
-			temp.data=string.rep('0',8-(#str))..str
-		elseif #str==0 then
-			temp.data="00000000"
-		end
-	else
-		temp.data=n or "00000000"
-	end
-	setmetatable({__tostring=function(self) return self.data end},temp)
 	return temp
 end
 for i=0,255 do
@@ -112,48 +114,25 @@ for i=0,255 do
 	bits.ref[d]=i
 	bits.ref["\255"..string.char(i)]=d
 end
-function bits.numToBytes(n,fit,fmt,func)
-	if fmt=="%e" then
-		local num=string.reverse(bits.new(n):toSbytes())
-		local ref={["num"]=num,["fit"]=fit}
-		if fit then
-			if fit<#num then
-				if func then
-					print("Warning: attempting to store a number that takes up more space than allotted! Using provided method!")
-					func(ref)
-				else
-					print("Warning: attempting to store a number that takes up more space than allotted!")
-				end
-				return ref.num:sub(1,ref.fit)
-			elseif fit==#num then
-				return num
+function bits.numToBytes(n,fit,func)
+	local num=string.reverse(bits.new(n):toSbytes())
+	local ref={["num"]=num,["fit"]=fit}
+	if fit then
+		if fit<#num then
+			if func then
+				print("Warning: attempting to store a number that takes up more space than allotted! Using provided method!")
+				func(ref)
 			else
-				return string.rep("\0",fit-#num)..num
+				print("Warning: attempting to store a number that takes up more space than allotted!")
 			end
-		else
-			return num
-		end
-
-	else
-		local num=string.reverse(bits.new(n):toSbytes())
-		local ref={["num"]=num,["fit"]=fit}
-		if fit then
-			if fit<#num then
-				if func then
-					print("Warning: attempting to store a number that takes up more space than allotted! Using provided method!")
-					func(ref)
-				else
-					print("Warning: attempting to store a number that takes up more space than allotted!")
-				end
-				return ref.num:sub(1,ref.fit)
-			elseif fit==#num then
-				return string.reverse(num)
-			else
-				return string.reverse(string.rep("\0",fit-#num)..num)
-			end
-		else
+			return ref.num:sub(1,ref.fit)
+		elseif fit==#num then
 			return string.reverse(num)
+		else
+			return string.reverse(string.rep("\0",fit-#num)..num)
 		end
+	else
+		return string.reverse(num)
 	end
 end
 function bits:conv(n)
