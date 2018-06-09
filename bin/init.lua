@@ -1,5 +1,5 @@
 bin={}
-bin.Version={5,1,0}
+bin.Version={5,2,0}
 bin.stage='stable'
 bin.data=''
 bin.t='bin'
@@ -684,9 +684,29 @@ if love then
 		temp.filepath=file
 		return temp
 	end
+	function bin.fileExists(name)
+		return love.filesystem.getInfo(name)
+	end
 	function bin:tofile(filename)
 		if not(filename) or self.Stream then return nil end
 		love.filesystem.write(filename,self.data)
+	end
+	function bin.loadS(path,s,r)
+		local path = love.filesystem.getSaveDirectory( ).."\\"..path
+		if type(path) ~= "string" then error("Path must be a string!") end
+		local f = io.open(path, 'rb')
+		local content = f:read('*a')
+		f:close()
+		return bin.new(content)
+	end
+	function bin:tofileS(filename)
+		if self.stream then return end
+		local filename = love.filesystem.getSaveDirectory( ).."\\"..filename
+		print(#self.data,filename)
+		if not filename then error("Must include a filename to save as!") end
+		file = io.open(filename, "wb")
+		file:write(self.data)
+		file:close()
 	end
 	function bin.stream(file)
 		return bin.newStreamFileObject(love.filesystem.newFile(file))

@@ -41,6 +41,10 @@ true
 table: 0x001e3f40
 ```
 #Updates/Changes
+Version 5.0.7
+Added:
++ bin.fileExists(name)
+[returns true if a file exists]
 Version 5.0.6
 -------------
 Fixed a bunch of bugs and added double support to the library

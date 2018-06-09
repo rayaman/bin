@@ -70,6 +70,10 @@ function io.dirExists(strFolderName)
 		end
 	end
 end
+function bin.fileExists(name)
+   local f=io.open(name,"r")
+   if f~=nil then io.close(f) return true else return false end
+end
 function bin.randomName(n,ext)
 	n=n or math.random(7,15)
 	if ext then
