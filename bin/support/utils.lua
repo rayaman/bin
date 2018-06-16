@@ -1,3 +1,4 @@
+local bin = require("bin")
 function table.print(tbl, indent)
 	if not indent then indent = 0 end
 		for k, v in pairs(tbl) do

@@ -1,5 +1,5 @@
-   RADIX = 10^7 ;
-   RADIX_LEN = math.floor( math.log10 ( RADIX ) ) ;
+RADIX = 10^7 ;
+RADIX_LEN = math.floor( math.log10 ( RADIX ) ) ;
 
 BigNum = {} ;
 BigNum.mt = {} ;

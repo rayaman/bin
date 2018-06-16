@@ -13,6 +13,7 @@ function bin.getVersion()
 	return bin.Version[1]..'.'..bin.Version[2]..'.'..bin.Version[3]
 end
 require("bin.support.utils")
+local bit
 if jit then
 	bit=require("bit")
 elseif bit32 then
@@ -20,13 +21,13 @@ elseif bit32 then
 else
 	bit=require("bin.numbers.no_jit_bit")
 end
-base64=require("bin.converters.base64")
-base91=require("bin.converters.base91")
-bin.lzw=require("bin.compressors.lzw") -- A WIP
-bits=require("bin.numbers.bits")
-infinabits=require("bin.numbers.infinabits") -- like the bits library but works past 32 bits for 32bit lua and 64 bits for 64 bit lua.
-bin.md5=require("bin.hashes.md5")
-randomGen=require("bin.numbers.random")
+local base64=require("bin.converters.base64")
+local base91=require("bin.converters.base91")
+local bin.lzw=require("bin.compressors.lzw") -- A WIP
+local bits=require("bin.numbers.bits")
+local infinabits=require("bin.numbers.infinabits") -- like the bits library but works past 32 bits for 32bit lua and 64 bits for 64 bit lua.
+local bin.md5=require("bin.hashes.md5")
+local randomGen=require("bin.numbers.random")
 function bin.setBitsInterface(int)
 	bin.defualtBit=int or bits
 end
@@ -757,3 +758,4 @@ if love then
 		self.workingfile:close()
 	end
 end
+return bin

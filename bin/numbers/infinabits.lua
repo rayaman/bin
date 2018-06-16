@@ -1,3 +1,4 @@
+local bin = require("bin")
 local binNum=require("bin.numbers.BigNum")
 local infinabits={}
 infinabits.data=''

@@ -1,3 +1,4 @@
+local bin = require("bin")
 local bits={}
 bits.data=''
 bits.t='bits'

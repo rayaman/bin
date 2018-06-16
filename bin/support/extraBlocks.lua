@@ -1,3 +1,4 @@
+local bin = require("bin")
 local __CURRENTVERSION=2
 bin.registerBlock("t",function(SIZE_OR_NIL,ref)
 	local header=ref:read(3)
