@@ -1,3 +1,4 @@
+local bin = require("bin")
 local base91={}
 local b91enc={[0]=
 	'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
@@ -68,5 +69,14 @@ function base91.encode(d)
 		end
 	end
 	return o
+end
+function bin.newFromBase64(data)
+	return bin.new(bin.fromBase64(data))
+end
+function bin.toBase64(s)
+	return base64.encode(s)
+end
+function bin.fromBase64(s)
+	return base64.decode(s)
 end
 return base91

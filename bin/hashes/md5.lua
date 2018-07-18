@@ -1,3 +1,4 @@
+local bin = require("bin")
 local md5 = {
   _VERSION     = "md5.lua 1.1.0",
   _DESCRIPTION = "MD5 computation in Lua (5.1-3, LuaJIT)",
@@ -373,5 +374,21 @@ end
 function md5.sumhexa(s)
   return md5.tohex(md5.sum(s))
 end
-
+bin.md5 = md5
+function bin:getMD5Hash()
+	self:setSeek(1)
+	local len=self:getSize()
+	local md5=bin.md5.new()
+	local SIZE=2048
+	if len>SIZE then
+		local dat=self:read(SIZE)
+		while dat~=nil do
+			md5:update(dat)
+			dat=self:read(SIZE)
+		end
+		return bin.md5.tohex(md5:finish()):upper()
+	else
+		return bin.md5.sumhexa(self:getData()):upper()
+	end
+end
 return md5
