@@ -29,7 +29,6 @@ build = {
       ["bin.hashes.md5"] = "bin/hashes/md5.lua",
       ["bin.numbers.no_jit_bit"] = "bin/numbers/no_jit_bit.lua",
       ["bin.numbers.random"] = "bin/numbers/random.lua",
-      ["bin.support.utils"] = "bin/support/utils.lua",
       ["bin.support.vfs"] = "bin/support/vfs.lua",
    }
 }
