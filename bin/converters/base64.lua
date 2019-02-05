@@ -1,3 +1,4 @@
+local bin = require("bin")
 local base64={}
 local bs = { [0] =
    'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P',
@@ -26,5 +27,14 @@ function base64.decode(s)
 		r = r .. char(bit.band(bit.arshift(n, 16), 0xFF)) .. char(bit.band(bit.arshift(n, 8), 0xFF)) .. char(bit.band(n, 0xFF))
 	end
 	return r:sub(1,-(cc+1))
+end
+function bin.newFromBase91(data)
+	return bin.new(bin.fromBase91(data))
+end
+function bin.toBase91(s)
+	return base91.encode(s)
+end
+function bin.fromBase91(s)
+	return base91.decode(s)
 end
 return base64
