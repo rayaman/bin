@@ -1020,7 +1020,7 @@ function bin.newDataBuffer(size,fill) -- fills with \0 or nul or with what you e
 			if type(v)=="string" then
 				data=v
 			elseif type(v)=="number" then
-				data=string.char(v)
+				data=bits.numToBytes(v)
 			else
 				-- try to normalize the data of type v
 				data=bin.normalizeData(v)
