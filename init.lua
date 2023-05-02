@@ -140,15 +140,7 @@ function table.max(t)
     return value
 end
 
-local bit
-if jit then
-	bit=require("bit")
-elseif bit32 then
-	bit=bit32
-else
-	bit=require("bin.numbers.no_jit_bit")
-end
-bin.lzw=require("bin.compressors.lzw") -- A WIP
+local bit=require("bit")
 local bits={}
 bin.bits = bits
 bits.data=''
@@ -300,11 +292,7 @@ function bits:conv(n)
 	return str
 end
 function bits:tonumber(s,e)
-	if s==0 then
-		return tonumber(self.data,2)
-	end
-	s=s or 1
-	return tonumber(string.sub(self.data,(8*(s-1))+1,8*s),2) or error('Bounds!')
+	return tonumber(self.data,2)
 end
 function bits:isover()
 	return #self.data>8
@@ -350,15 +338,14 @@ infinabits.__index = infinabits
 infinabits.__tostring=function(self) return self.data end
 infinabits.__len=function(self) return (#self.data)/8 end
 local floor,insert = math.floor, table.insert
-function basen(n,b)
-    n=BigNum.new(n)
-    if not b or b == 10 then return tostring(n) end
+function basen_b(n,b)
+    n = BigNum.new(n)
     local digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     local t = {}
     local sign = ""
     if n < BigNum.new(0) then
         sign = "-"
-    n = -n
+    	n = -n
     end
     repeat
         local d = tonumber(tostring(n % b)) + 1
@@ -452,7 +439,7 @@ function infinabits.new(n,binary)
 			temp.data=table.concat(t)
 		end
 	elseif type(n)=="number" or type(n)=="table" then
-		temp.data=basen(tostring(n),2)
+		temp.data=basen_b(tostring(n),2)
 	end
 	if #temp.data%8~=0 then
 		temp.data=string.rep('0',8-#temp.data%8)..temp.data
@@ -547,11 +534,7 @@ function infinabits:conv(n)
 	return str
 end
 function infinabits:tonumber(s)
-	if s==0 then
-		return tonumber(self.data,2)
-	end
-	s=s or 1
-	return tonumber(tostring(base2to10(string.sub(self.data,(8*(s-1))+1,8*s)))) or error('Bounds!')
+	return base2to10(self.data)
 end
 function infinabits:isover()
 	return #self.data>8
